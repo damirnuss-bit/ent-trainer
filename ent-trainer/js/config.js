@@ -4,9 +4,9 @@ export const CONFIG = {
   version: '0.2.0-beta',
 
   // Имя бота без @ (для кнопки «Поделиться»). Заполнить после создания в @BotFather
-  botUsername: 'YOUR_BOT_USERNAME',
+  botUsername: 'enttrainer_bot',
   // Твой Telegram username без @: куда приходят отчёты «Нашёл ошибку» и заявки от рекламодателей
-  ownerUsername: 'YOUR_TELEGRAM_USERNAME',
+  ownerUsername: 'mariachiman88',
 
   // Карта для добровольной поддержки проекта (показывается в окне «Поддержать»). Пусто = кнопка скрыта
   donateCard: '4400 4302 7345 1358',
