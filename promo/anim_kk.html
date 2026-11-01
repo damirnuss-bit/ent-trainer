@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:U;src:url(fonts/Mont.ttf);font-weight:100 900}
+@font-face{font-family:M;src:url(fonts/Plex.ttf);font-weight:400 600}@font-face{font-family:M;src:url(fonts/PlexB.ttf);font-weight:700 800}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#000;overflow:hidden}
+:root{--L:#C8FF2E;--ca:0}
+#stage{width:540px;height:960px;position:relative;overflow:hidden;background:#07080a;color:#fff;font-family:U,sans-serif}
+.layer{position:absolute;inset:0}
+.sc{position:absolute;inset:0;display:none;z-index:3}
+#shade{position:absolute;left:0;right:0;top:0;height:330px;background:linear-gradient(#07080a 45%,rgba(7,8,10,0));z-index:2;opacity:0}
+.tx{position:absolute;left:0;right:0;text-align:center;font-weight:900;text-transform:uppercase;letter-spacing:-.015em;line-height:1.02;
+  text-shadow:calc(var(--ca)*1px) 0 rgba(255,40,100,.85),calc(var(--ca)*-1px) 0 rgba(30,230,255,.85)}
+.w{display:inline-block;will-change:transform,filter,opacity}
+.hl{display:inline-block;position:relative;color:#0a0b0c;padding:.08em .22em .1em;margin:0 .04em}
+.hl::before{content:'';position:absolute;inset:0;background:var(--L);transform-origin:0 50%;transform:scaleX(var(--p,1));box-shadow:0 0 28px rgba(200,255,46,.45);z-index:-1}
+.hl span{position:relative}
+.br{display:inline-block;padding:0 .12em;border:2px solid var(--L);border-radius:4px}
+.mono{font-family:M,monospace;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+#grain{position:absolute;inset:0;width:540px;height:960px;opacity:.025;mix-blend-mode:screen}
+#vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 50%,rgba(0,0,0,.75) 100%)}
+#flash{position:absolute;inset:0;background:#fff;opacity:0}
+/* HUD */
+.hud{position:absolute;font-family:M,monospace;font-size:9px;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase}
+.corner{position:absolute;width:16px;height:16px;border-color:rgba(255,255,255,.35);border-style:solid}
+#ring{position:absolute;right:24px;top:52px;width:42px;height:42px}
+/* phone */
+#phone{z-index:1;position:absolute;left:0;top:0;width:250px;height:541px;border-radius:38px;background:#16191d;padding:6px;
+  box-shadow:0 0 0 1.5px #2a2f35,0 40px 90px rgba(0,0,0,.7),0 0 60px rgba(91,157,240,.12);transform-style:preserve-3d}
+#scr{position:relative;width:100%;height:100%;border-radius:32px;overflow:hidden;background:#121417}
+#scr img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover}
+#tap{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:3px solid var(--L);opacity:0}
+#frameHL{position:absolute;border:2.5px solid var(--L);border-radius:14px;box-shadow:0 0 24px rgba(200,255,46,.5);opacity:0}
+.chip{position:absolute;font-family:U;font-weight:800;font-size:20px;padding:10px 16px;border-radius:12px;background:#15181c;border:1.5px solid #2c3238;white-space:nowrap;text-transform:uppercase}
+.chip.l{background:var(--L);color:#0a0b0c;border-color:var(--L);box-shadow:0 0 30px rgba(200,255,46,.4)}
+#qwall{position:absolute;left:-200px;top:0;width:940px;height:1600px;transform-origin:50% 0}
+#qwall div{font-family:M;font-size:15px;color:rgba(255,255,255,.22);white-space:nowrap;line-height:30px}
+#qwall div b{color:var(--L);font-weight:600}
+.tgbtn{display:inline-block;font-family:Inter,sans-serif;font-weight:600;font-size:22px;background:#2AABEE;color:#fff;border-radius:16px;padding:16px 34px;text-transform:none;letter-spacing:0}
+</style></head><body>
+<div id="stage">
+ <div class="layer" id="cam">
+  <div class="layer" id="bgl"><div id="qwall"></div></div>
+
+  <!-- S1 hook -->
+  <div class="sc" id="s1">
+   <div class="tx" style="top:250px;font-size:22px"><span class="w" id="s1a">ҰБТ-ға дайындық үшін</span></div>
+   <div class="tx" style="top:300px;font-size:84px;letter-spacing:-.04em" id="s1n"><span class="w" id="s1b">35&#8239;000&nbsp;₸</span></div>
+   <div id="s1s" style="position:absolute;left:40px;top:345px;height:10px;width:460px;background:var(--L);transform-origin:0 50%;box-shadow:0 0 24px rgba(200,255,46,.6)"></div>
+   <div class="tx" style="top:430px;font-size:30px"><span class="w" id="s1c">төлейсің</span></div>
+   <div class="tx" style="top:478px;font-size:30px"><span class="w hl" id="s1d"><span>бе?</span></span></div>
+  </div>
+
+  <!-- S2 zero -->
+  <div class="sc" id="s2">
+   <div class="tx" style="top:300px;font-size:120px;letter-spacing:-.05em"><span class="w" id="s2n">0&nbsp;₸</span></div>
+   <div class="tx" style="top:500px;font-size:30px"><span class="w" id="s2a">ал мұнда</span></div>
+   <div class="tx" style="top:548px;font-size:38px"><span class="w hl" id="s2b"><span>тегін</span></span></div>
+  </div>
+
+  <!-- S3 telegram -->
+  <div class="sc" id="s3">
+   <div class="tx" style="top:120px;font-size:44px"><span class="w" id="s3a">ҰБТ тренажеры</span></div>
+   <div class="tx" style="top:180px;font-size:30px"><span class="w" id="s3b">тікелей</span> <span class="w hl" id="s3c"><span>telegram-да</span></span></div>
+  </div>
+
+  <!-- S4 banks -->
+  <div class="sc" id="s4">
+   <div class="chip l" id="c1" style="left:28px;top:220px;font-size:30px">физмат</div>
+   <div class="chip l" id="c2" style="left:282px;top:220px;font-size:30px">химбио</div>
+   <div class="tx mono" style="top:335px;font-size:17px;color:rgba(255,255,255,.6)"><span class="w" id="s4l">сұрақтар базасы</span></div>
+   <div class="tx" style="top:370px;font-size:110px;letter-spacing:-.05em"><span class="w" id="s4n">2000</span></div>
+   <div class="tx" style="top:520px;font-size:26px"><span class="w" id="s4a">шексіз</span></div>
+   <div class="tx" style="top:566px;font-size:34px"><span class="w hl" id="s4b"><span>толығады</span></span></div>
+  </div>
+
+  <!-- S5 demo -->
+  <div class="sc" id="s5">
+   <div class="tx" style="top:110px;font-size:40px"><span class="w" id="s5a">қателестің бе?</span></div>
+   <div class="tx" style="top:165px;font-size:34px"><span class="w hl" id="s5b"><span>бірден түсіндірме</span></span></div>
+   <div class="tx" style="top:130px;font-size:40px"><span class="w" id="s5o">жауап бересің</span></div>
+  </div>
+
+  <!-- S6 forecast -->
+  <div class="sc" id="s6">
+   <div class="tx" style="top:105px;font-size:38px"><span class="w" id="s6a">көресің:</span></div>
+   <div class="tx" style="top:162px;font-size:36px"><span class="w hl" id="s6b"><span>балл болжамы</span></span></div>
+  </div>
+
+  <!-- S7 weak -->
+  <div class="sc" id="s7">
+   <div class="tx" style="top:110px;font-size:32px"><span class="w" id="s7a">әлсіз тақырыптарды</span></div>
+   <div class="tx" style="top:162px;font-size:38px"><span class="w hl" id="s7b"><span>бот табады</span></span></div>
+  </div>
+
+  <!-- S8 exam -->
+  <div class="sc" id="s8">
+   <div class="tx" style="top:100px;font-size:40px"><span class="w hl" id="s8a"><span>сынақ ҰБТ</span></span></div>
+   <div class="tx mono" style="top:172px;font-size:18px"><span class="w" id="s8b">120 тапсырма · 4 сағат</span></div>
+   <div class="tx mono" style="top:770px;font-size:44px;font-weight:700;color:var(--L)"><span class="w" id="s8t">03:59:59</span></div>
+  </div>
+
+  <!-- S9 langs -->
+  <div class="sc" id="s9">
+   <div class="tx" style="top:105px;font-size:40px"><span class="w hl" id="s9a"><span>қазақша</span></span></div>
+   <div class="tx" style="top:162px;font-size:40px"><span class="w" id="s9b">орысша</span></div>
+  </div>
+
+  <!-- S10 weekly -->
+  <div class="sc" id="s10">
+   <div class="tx" style="top:200px;font-size:34px"><span class="w" id="s10a">жаңа пәндер</span></div>
+   <div class="tx" style="top:250px;font-size:34px"><span class="w hl" id="s10b"><span>әр апта сайын</span></span></div>
+   <div id="chips10"></div>
+  </div>
+
+  <!-- S11 stamps -->
+  <div class="sc" id="s11">
+   <div class="tx" style="top:390px;font-size:64px"><span class="w hl" id="st1"><span>тегін</span></span></div>
+   <div class="tx" style="top:400px;font-size:50px"><span class="w" id="st2">жарнамасыз</span></div>
+   <div class="tx" style="top:400px;font-size:50px"><span class="w" id="st3">жазылымсыз</span></div>
+  </div>
+
+  <!-- S12 cta -->
+  <div class="sc" id="s12">
+   <div class="tx mono" style="top:270px;font-size:18px;color:rgba(255,255,255,.7)"><span class="w" id="s12a">telegram-нан ізде</span></div>
+   <div class="tx" style="top:315px;font-size:40px;text-transform:none"><span class="w hl" id="s12b"><span>@enttrainer_bot</span></span></div>
+   <div class="tx" style="top:430px"><span class="w tgbtn" id="s12c">Тренажерді ашу</span></div>
+   <div class="tx" style="top:570px;font-size:24px;font-weight:600;color:rgba(255,255,255,.8)"><span class="w" id="s12d">ҰБТ тапсыратын</span></div>
+   <div class="tx" style="top:604px;font-size:24px;font-weight:600;color:rgba(255,255,255,.8)"><span class="w" id="s12e">досыңа жібер</span></div>
+  </div>
+
+  <div id="shade"></div>
+  <!-- phone -->
+  <div id="phone"><div id="scr"><img id="im1"><img id="im2"><div id="frameHL"></div><div id="tap"></div></div></div>
+ </div>
+
+ <!-- HUD -->
+ <div class="layer" id="hudl">
+  <div class="corner" style="left:18px;top:70px;border-width:1.5px 0 0 1.5px"></div>
+  <div class="corner" style="right:18px;top:70px;border-width:1.5px 1.5px 0 0"></div>
+  <div class="corner" style="left:18px;bottom:150px;border-width:0 0 1.5px 1.5px"></div>
+  <div class="corner" style="right:18px;bottom:150px;border-width:0 1.5px 1.5px 0"></div>
+  <div class="hud" style="left:28px;top:80px"><span style="color:#ff3b4f">●</span> REC <span id="tc">00:00:00:00</span></div>
+  <div class="hud" style="left:28px;top:94px">ent·trainer / v0.2</div>
+  <div class="hud" style="left:28px;bottom:158px" id="scn">сцена 01 / 12</div>
+  <div class="hud" style="right:28px;bottom:158px" id="frn">кадр 0000 / 1188</div>
+  <svg id="ring" viewBox="0 0 54 54"><circle cx="27" cy="27" r="24" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="2"/><circle id="rg" cx="27" cy="27" r="24" fill="none" stroke="#C8FF2E" stroke-width="2.5" stroke-dasharray="150.8" stroke-linecap="round" transform="rotate(-90 27 27)"/><text id="rt" x="27" y="31" text-anchor="middle" font-family="M" font-size="11" font-weight="700" fill="#C8FF2E">00:40</text></svg>
+ </div>
+ <canvas id="grain" width="270" height="480"></canvas>
+ <div id="vig"></div>
+ <div id="flash"></div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const cl = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const eo = (x) => 1 - Math.pow(1 - x, 3), eo5 = (x) => 1 - Math.pow(1 - x, 5), ei = (x) => x * x * x;
+const eio = (x) => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const lerp = (a, b, p) => a + (b - a) * p;
+const P = (t, a, d) => cl((t - a) / d);
+const TOTAL = 33; const SPD = 1.2;
+// scene table
+const SC = [[0, 2.2], [2.2, 4.2], [4.2, 6.8], [6.8, 9.8], [9.8, 13.4], [13.4, 16.2], [16.2, 19.0], [19.0, 21.8], [21.8, 23.8], [23.8, 26.0], [26.0, 28.6], [28.6, 33.0]];
+const CUTS = SC.map((s) => s[0]).slice(1).concat([26.85, 27.7]);
+const SLAMS = [0.55, 2.35, 7.0, 7.2, 24.3, 26.0, 26.85, 27.7, 28.9];
+
+// question wall
+const QT = ["Жасуша ядросы қандай қызмет атқарады?", "Массасы 5 кг дене 4 м/с² үдеумен қозғалуы үшін қандай күш керек?", "log_4 x = 2 теңдеуін шешіңіз.", "300 градус Цельсийді кельвинге айналдырыңыз.", "Жылдамдығы 45 км/сағ болса, 135 км жолды неше сағатта жүріп өтеміз?", "Еуразиялық экономикалық одақ құру туралы шарт қай жылы қол қойылды?", "a = (3; 4) векторының ұзындығын табыңыз.", "Глюкоза қай класқа жатады?", "880 санының 45%-ін табыңыз.", "Қан айналымының кіші шеңбері қайда аяқталады?", "Фотосинтездің жарық фазасы қайда жүреді?", "Диффузия туралы дұрыс тұжырымдарды таңдаңыз (екі дұрыс жауап).", "Кедір-бұдырлы эндоплазмалық тор қандай қызмет атқарады?", "Бутанның C₄H₁₀ неше құрылымдық изомері бар?", "Қандай организмдерді хемосинтездеушілер деп атайды?", "Массалық саны 16, заряды 8 ядрода неше нейтрон бар?", "log_2 256 есептеңіз.", "4 моль газ қалыпты жағдайда қандай көлем алады?", "30, 45, 50, 75 сандарының арифметикалық ортасын табыңыз.", "Катеттері 5 және 12 тікбұрышты үшбұрыштың ауданын табыңыз.", "Белсенді тасымал пассивті тасымалдан немен ерекшеленеді?", "Қай зат қарапайым?", "Қышқыл атауы мен формуласы арасындағы сәйкестікті орнатыңыз.", "Катеттері 7 және 24 тікбұрышты үшбұрыштың ауданын табыңыз.", "Математикалық маятниктің кіші тербеліс периоды қай шамаға тәуелді?", "2^x = 32 теңдеуін шешіңіз.", "Күн сәулесінің әсерінен теріде қандай дәрумен түзіледі?", "Көміртек диоксиді CO₂ қандай затпен әрекеттеседі?", "Фотосинтезді қандай жиынтық теңдеу сипаттайды?", "Пластикалық алмасуға жататын процестерді таңдаңыз (екі дұрыс жауап).", "Катеттері 6 және 8 тікбұрышты үшбұрыштың ауданын табыңыз.", "8, 12, 10 сандарының арифметикалық ортасын табыңыз.", "7,5 км неше метр?", "Қоректік тізбекте продуцент кім?", "Ток күшін өлшеу үшін тізбекке тізбектей қосылатын құрал қайсысы?", "Қай органоид тек өсімдік жасушасында болады?", "O₂ молекуласында қандай байланыс бар?", "Қай гидроксид амфотерлік қасиет көрсетеді?", "Этиленді полимерлеп қандай полимер алады?", "Цельсий шкаласындағы 0 °C Кельвин шкаласында неге тең?", "Ер адамда қандай жыныс хромосомалары болады?", "NaOH затының 0,5 молінің массасы неге тең (M = 40 г/моль)?", "Есік қорғанынан табылған атақты олжа қалай аталады?", "Жасушадағы әмбебап энергия жинақтаушы зат қайсы?", "Сілекейдің қандай ферменті крахмалды ыдыратады?", "-23 градус Цельсийді кельвинге айналдырыңыз.", "Өткізгіш қимасы арқылы 2 с-та 8 Кл заряд өтті. Ток күшін табыңыз.", "Қай қан тобы әмбебап донор болып саналады?", "Сұйықтың итеруші күші туралы заңды кім ашты?", "x² - 7x + 6 = 0 теңдеуінің түбірлер көбейтіндісін табыңыз.", "Температура тұрақты кезіндегі процесс қалай аталады?", "Жиілік 5 Гц болса, тербеліс периодын табыңыз.", "Тауардың бағасы 200-ден 250-ге өсті. Неше пайызға?", "Альфа-ыдырау кезінде элемент периодтық кестеде қалай ығысады?", "Қай металл тұз қышқылымен сутек бөле отырып әрекеттеспейді?", "Фотосинтезде бөлінетін оттегі қайдан алынады?", "Толқын жылдамдығы 340 м/с, жиілігі 170 Гц. Толқын ұзындығын табыңыз.", "Ақуыздар қандай мономерлерден тұрады?", "Кариограмма дегеніміз не?", "Алкандардың жалпы формуласы қандай?", "Кернеу 12 В, кедергі 4 Ом болса, ток күші неге тең?", "5 см² ауданды мм²-мен өрнектеңіз.", "Бүйректің құрылымдық және қызметтік бірлігі не?", "x^2 функциясының 0-ден 3-ге дейінгі анықталған интегралын есептеңіз.", "Құбылыс пен мысал арасындағы сәйкестікті орнатыңыз.", "3 м тереңдіктегі су қысымын табыңыз (ρ = 1000 кг/м³, g = 10 м/с²).", "Тұз қышқылы кальций карбонатына әсер еткенде қандай газ бөлінеді?", "Митоздан кейін адам жасушасында қанша хромосома болады?", "7,25 кг неше грамм?", "Ұлы жүздің аумағын қалай атады?", "Дыбыс ең жылдам қайда таралады?", "Қай органоидты жасушаның энергетикалық станциясы дейді?", "Радиусы 2 шардың бетінің ауданын табыңыз (π үлесімен).", "1 гектар неше шаршы метр?", "Бөлме 6 м × 3 м. Еденге неше шаршы метр линолеум керек?", "Хромосома саны екі есе азаятын жасуша бөлінуі қалай аталады?", "Қорапта 6 шар бар, оның 1-і қызыл. Қызыл шар алу ықтималдығы қандай?", "Ақуыздың қай құрылымы амин қышқылдарының реттілігімен анықталады?", "Электр сыйымдылығының СИ бірлігі қандай?", "1991 жылы ғарышқа ұшқан тәуелсіз Қазақстанның тұңғыш ғарышкері кім?", "Түрік қағанаты қай жылы құрылды?", "Ақуыздың ренатурациясы дегеніміз не?", "Трансформатор не үшін қызмет етеді?", "3 моль газ қалыпты жағдайда қандай көлем алады?", "Жасушада қандай мембранасыз органоидтар бар?", "25 Н күш күш бағытымен 6 м жолда қандай жұмыс жасайды?", "(2; 3) векторына тең векторларды таңдаңыз (екі дұрыс жауап).", "Этиленді өткізгенде қай реактив түссізденеді?", "150 г ерітіндіде 6 г зат еріген. Массалық үлесін табыңыз.", "Адамда неше жұп қабырға бар?"];
+const wall = $('qwall');
+for (let i = 0; i < 52; i++) {
+  const d = document.createElement('div');
+  const a = QT[i % QT.length], b = QT[(i * 7 + 3) % QT.length];
+  d.innerHTML = String(i * 37 % 2000).padStart(4, '0') + '  ' + a.replace(/^(\S+)/, '<b>$1</b>') + '    ' + b;
+  wall.appendChild(d);
+}
+// chips S10
+const SUBJ = ['математика', 'физика', 'химия', 'биология', 'Қазақстан тарихы', 'оқу сауаттылығы', 'мат. сауаттылық'];
+const ch10 = $('chips10');
+SUBJ.forEach((s, i) => { const c = document.createElement('div'); c.className = 'chip'; c.textContent = s; c.style.fontSize = '16px'; ch10.appendChild(c); });
+const newChip = document.createElement('div'); newChip.className = 'chip l'; newChip.textContent = '+ жаңа пән'; newChip.style.fontSize = '18px'; ch10.appendChild(newChip);
+
+// grain
+const g = $('grain').getContext('2d'); const gi = g.createImageData(270, 480);
+let seed = 1; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+function grain(f) { seed = 1 + f * 7919; const d = gi.data; for (let i = 0; i < d.length; i += 4) { const v = rnd() * 255; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; } g.putImageData(gi, 0, 0); }
+
+// word fx
+function pop(el, t, at, d = .2, from = 1.5) {
+  const p = P(t, at, d), e = eo5(p);
+  el.style.opacity = p <= 0 ? 0 : cl(p * 3);
+  el.style.transform = `scale(${lerp(from, 1, e)}) translateY(${lerp(14, 0, e)}px)`;
+  el.style.filter = `blur(${(1 - e) * 10}px)`;
+}
+function hl(el, t, at, d = .22) {
+  const p = P(t, at, d), e = eo(p);
+  el.style.opacity = p <= 0 ? 0 : 1;
+  el.style.setProperty('--p', e);
+  el.style.transform = `rotate(${lerp(-5, -1.5, e)}deg) scale(${lerp(1.25, 1, e)})`;
+  el.querySelector('span').style.opacity = cl((p - .35) * 3);
+}
+function out(el, t, at, d = .15) { const p = P(t, at, d); if (p > 0) { el.style.opacity = (1 - p) * (parseFloat(el.style.opacity) || 1); el.style.filter = `blur(${p * 12}px)`; } }
+
+// phone state
+const im1 = $('im1'), im2 = $('im2'), phone = $('phone');
+const SRC = (n) => 'shots_kk/' + n + '.png';
+let curA = '', curB = '';
+function screen(a, b = null, mix = 0) {
+  if (curA !== a) { im1.src = SRC(a); curA = a; }
+  if (b && curB !== b) { im2.src = SRC(b); curB = b; }
+  im2.style.opacity = b ? mix : 0;
+}
+// phone transform: center x,y, scale, rotX, rotY, rotZ, focus offset (screen px from phone center scaled)
+function phoneAt(x, y, s, rx = 0, ry = 0, rz = 0, op = 1) {
+  phone.style.display = op > 0 ? 'block' : 'none';
+  phone.style.opacity = op;
+  phone.style.transform = `translate(${x - 125}px,${y - 270.5}px) perspective(1400px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg) scale(${s})`;
+}
+const sp = (cssY) => 6 + cssY * (238 / 390); // css px of app screen -> px inside phone frame
+
+function shake(t) {
+  let x = 0, y = 0;
+  for (const s of SLAMS) { const d = t - s; if (d >= 0 && d < .5) { const a = 9 * Math.exp(-d * 11); x += a * Math.sin(d * 90); y += a * Math.cos(d * 77); } }
+  return [x, y];
+}
+function glitch(t) {
+  let c = 0;
+  for (const s of CUTS) { const d = t - s; if (d >= -0.03 && d < .14) c = Math.max(c, 1 - Math.abs(d) / .14); }
+  return c;
+}
+
+function show(i, t) { const el = $('s' + (i + 1)); const on = t >= SC[i][0] && t < SC[i][1]; el.style.display = on ? 'block' : 'none'; return on ? t - SC[i][0] : null; }
+
+window.render = function (t) {
+  const f = Math.round(t * SPD * 30), rt = t * SPD;
+  grain(f);
+  // HUD
+  const fr = f % 30, ss = Math.floor(rt);
+  $('tc').textContent = `00:00:${String(ss).padStart(2, '0')}:${String(fr).padStart(2, '0')}`;
+  $('frn').textContent = `кадр ${String(f).padStart(4, '0')} / 1188`;
+  let si = SC.findIndex((s) => t >= s[0] && t < s[1]); if (si < 0) si = 11;
+  $('scn').textContent = `сцена ${String(si + 1).padStart(2, '0')} / 12`;
+  const left = Math.max(0, TOTAL * SPD - rt);
+  $('rt').textContent = '00:' + String(Math.ceil(left)).padStart(2, '0');
+  $('rg').setAttribute('stroke-dashoffset', 150.8 * (1 - left / (TOTAL * SPD)));
+  $('hudl').style.opacity = cl(t / .3);
+
+  // camera
+  const [sx, sy] = shake(t), gl = glitch(t);
+  const drift = 1 + 0.012 * Math.sin(t * .9);
+  $('cam').style.transform = `translate(${sx + (gl > .3 ? (Math.sin(f * 13) * 14 * gl) : 0)}px,${sy}px) scale(${drift})`;
+  document.documentElement.style.setProperty('--ca', (gl * 6 + 0.6).toFixed(2));
+  $('flash').style.opacity = gl > .85 ? .12 : 0;
+
+  // background wall: visible in S1, S2, S4 lightly
+  const wallOp = (t < 4.2 ? .09 : 0) + (t >= 6.8 && t < 9.8 ? .2 : 0) + (t >= 28.6 ? .08 : 0);
+  wall.style.opacity = wallOp;
+  wall.style.transform = `perspective(700px) rotateX(58deg) translateY(${-((t * 120) % 900)}px) scale(1.2)`;
+
+  let lt;
+  // S1
+  if ((lt = show(0, t)) != null) {
+    pop($('s1a'), lt, .05); pop($('s1b'), lt, .5, .18, 2.6); pop($('s1c'), lt, .95); hl($('s1d'), lt, 1.25);
+    $('s1s').style.transform = `scaleX(${eo(P(lt, 1.75, .22))}) rotate(-3deg)`;
+  }
+  // S2
+  if ((lt = show(1, t)) != null) {
+    const p = P(lt, .1, .55);
+    const n = Math.round(35000 * (1 - eo(p)));
+    $('s2n').innerHTML = (n >= 1000 ? Math.floor(n / 1000) + '&#8239;' + String(n % 1000).padStart(3, '0') : n) + '&nbsp;₸';
+    $('s2n').style.filter = `blur(${p > 0 && p < 1 ? 3 : 0}px)`;
+    $('s2n').style.color = p >= 1 ? '#C8FF2E' : '#fff';
+    $('s2n').style.textShadow = p >= 1 ? '0 0 40px rgba(200,255,46,.6)' : '';
+    $('s2n').style.transform = `scale(${p >= 1 ? 1 + .25 * Math.exp(-(lt - .65) * 12) : .62})`;
+    $('s2n').style.opacity = 1;
+    pop($('s2a'), lt, .85); hl($('s2b'), lt, 1.15);
+  }
+  // S3 - phone enters
+  if ((lt = show(2, t)) != null) {
+    pop($('s3a'), lt, .05); pop($('s3b'), lt, .45); hl($('s3c'), lt, .65);
+  }
+  // S4
+  if ((lt = show(3, t)) != null) {
+    pop($('c1'), lt, .1, .2, 2.2); pop($('c2'), lt, .3, .2, 2.2);
+    $('c1').style.transform += ' rotate(-4deg)'; $('c2').style.transform += ' rotate(3deg)';
+    pop($('s4l'), lt, .7);
+    const p = P(lt, .8, 1.1);
+    const el = $('s4n');
+    if (p < 1) { el.textContent = (2000 + Math.round(eio(p) * 7999)).toLocaleString('ru-RU').replace(/\s/g, ' ') ; el.style.fontSize = ''; }
+    else el.textContent = '∞';
+    el.style.opacity = p > 0 ? 1 : 0;
+    el.style.transform = p >= 1 ? `scale(${1.6 + .4 * Math.exp(-(lt - 1.9) * 10)})` : 'scale(1)';
+    el.style.color = p >= 1 ? '#C8FF2E' : '#fff';
+    el.style.filter = p > 0 && p < 1 ? 'blur(1.5px)' : 'none';
+    pop($('s4a'), lt, 1.95); hl($('s4b'), lt, 2.25);
+  }
+  // S5 demo
+  if ((lt = show(4, t)) != null) {
+    pop($('s5o'), lt, .05); out($('s5o'), lt, 1.3);
+    pop($('s5a'), lt, 1.45); hl($('s5b'), lt, 1.8);
+    if (lt < 1.45) { $('s5a').style.opacity = 0; $('s5b').style.opacity = 0; }
+  }
+  if ((lt = show(5, t)) != null) { pop($('s6a'), lt, .05); hl($('s6b'), lt, .35); }
+  if ((lt = show(6, t)) != null) { pop($('s7a'), lt, .05); hl($('s7b'), lt, .35); }
+  if ((lt = show(7, t)) != null) {
+    hl($('s8a'), lt, .05); pop($('s8b'), lt, .4);
+    const secs = 4 * 3600 - 1 - Math.floor(P(lt, 1.2, 1.6) * 0) - Math.floor(lt * 7);
+    const h = Math.floor(secs / 3600), m = Math.floor(secs % 3600 / 60), s2 = secs % 60;
+    $('s8t').textContent = `0${h}:${String(m).padStart(2, '0')}:${String(s2).padStart(2, '0')}`;
+    pop($('s8t'), lt, 1.1);
+  }
+  if ((lt = show(8, t)) != null) {
+    hl($('s9a'), lt, .05); pop($('s9b'), lt, .75);
+  }
+  if ((lt = show(9, t)) != null) {
+    pop($('s10a'), lt, .05); hl($('s10b'), lt, .4);
+    const kids = [...ch10.children];
+    kids.forEach((c, i) => {
+      const isNew = i === kids.length - 1;
+      const at = isNew ? 1.55 : .7 + i * .09;
+      const col = i % 2, row = Math.floor(i / 2);
+      const x = isNew ? 270 : (col ? 280 : 260), y = isNew ? 690 : 360 + row * 62;
+      const p = P(lt, at, isNew ? .2 : .25), e = eo5(p);
+      c.style.left = '0px'; c.style.top = '0px';
+      const w = c.offsetWidth;
+      const tx = isNew ? x - w / 2 : (col ? x : x - w);
+      c.style.opacity = p > 0 ? 1 : 0;
+      c.style.transform = `translate(${tx}px,${lerp(y + (isNew ? 0 : 160), y, e)}px) rotate(${isNew ? lerp(-12, -3, e) : lerp(col ? 8 : -8, col ? 2 : -2, e)}deg) scale(${isNew ? lerp(2.4, 1, e) : 1})`;
+    });
+  }
+  if ((lt = show(10, t)) != null) {
+    const a = $('st1'), b = $('st2'), c = $('st3');
+    hl(a, lt, 0, .16); a.style.transform += ` scale(${1 + .3 * Math.exp(-lt * 9)})`; if (lt > .85) a.style.opacity = 0;
+    pop(b, lt, .85, .14, 2.4); if (lt < .85 || lt > 1.7) b.style.opacity = 0;
+    pop(c, lt, 1.7, .14, 2.4); if (lt < 1.7) c.style.opacity = 0;
+  }
+  if ((lt = show(11, t)) != null) {
+    pop($('s12a'), lt, .1); hl($('s12b'), lt, .3, .25);
+    pop($('s12c'), lt, .9, .25, .6);
+    const pulse = lt > 1.4 ? 1 + .04 * Math.sin((lt - 1.4) * 6) : 1;
+    $('s12c').style.transform += ` scale(${pulse})`;
+    $('s12c').style.boxShadow = `0 0 ${20 + 20 * Math.sin(lt * 6)}px rgba(42,171,238,.6)`;
+    pop($('s12d'), lt, 1.5); pop($('s12e'), lt, 1.65);
+  }
+
+  // ---------- PHONE choreography ----------
+  const tap = $('tap'), fhl = $('frameHL');
+  $('shade').style.opacity = ((t>=4.2&&t<6.8)||(t>=9.8&&t<23.8)) ? 1 : 0;
+  tap.style.opacity = 0; fhl.style.opacity = 0;
+  if (t >= 4.2 && t < 6.8) {
+    const lt2 = t - 4.2, p = eo5(P(lt2, .2, .7));
+    screen('home');
+    phoneAt(270, lerp(1300, 640, p), 1.3, lerp(30, 8, p), lerp(-25, -10, p), lerp(8, 2, p) + lt2 * -.6);
+  } else if (t >= 9.8 && t < 13.4) {
+    const lt2 = t - 9.8;
+    const pin = eo5(P(lt2, 0, .35));
+    if (lt2 < 1.3) {
+      screen('q_before', 'q_picked', lt2 > .85 ? 1 : 0);
+      phoneAt(270, lerp(1200, 640, pin), 1.3, lerp(20, 4, pin), -6, 0);
+      // tap on option C (app css y ~355)
+      const tp = P(lt2, .7, .45);
+      if (tp > 0 && tp < 1) { tap.style.left = '120px'; tap.style.top = sp(276) + 'px'; tap.style.opacity = 1 - tp; tap.style.transform = `scale(${.5 + tp * 1.2})`; }
+    } else {
+      screen('q_wrong');
+      const z = eio(P(lt2, 1.75, .7));
+      // explanation box center at app css y ~567 => focus
+      const fy = sp(577) - 270.5;
+      const s = lerp(1.3, 1.95, z);
+      phoneAt(270, lerp(640, 560 - fy * 1.95, z), s, 4 - 4 * z, -6 + 6 * z, 0);
+      // wrong tap
+      const tp = P(lt2, 1.32, .4);
+      if (tp > 0 && tp < 1) { tap.style.left = '120px'; tap.style.top = sp(276) + 'px'; tap.style.opacity = 1 - tp; tap.style.transform = `scale(${.5 + tp * 1.2})`; }
+      const hp = P(lt2, 2.3, .25);
+      if (hp > 0) { fhl.style.opacity = hp; fhl.style.left = '14px'; fhl.style.top = sp(512) + 'px'; fhl.style.width = '210px'; fhl.style.height = (sp(640) - sp(512)) + 'px'; }
+    }
+  } else if (t >= 13.4 && t < 16.2) {
+    const lt2 = t - 13.4;
+    screen('home');
+    const z = eio(P(lt2, .5, .8)), fy = sp(150) - 270.5;
+    const s = lerp(1.3, 2.3, z);
+    phoneAt(lerp(270, 360, z), lerp(640, 470 - fy * 2.3, z), s, 0, lerp(-8, 0, z), 0);
+    const hp = P(lt2, 1.35, .25);
+    if (hp > 0) { fhl.style.opacity = hp; fhl.style.left = '10px'; fhl.style.top = sp(108) + 'px'; fhl.style.width = '130px'; fhl.style.height = (sp(200) - sp(108)) + 'px'; }
+  } else if (t >= 16.2 && t < 19.0) {
+    const lt2 = t - 16.2;
+    screen('progress');
+    const z = eio(P(lt2, .4, .8)), fy = sp(590) - 270.5;
+    const s = lerp(1.3, 1.9, z);
+    phoneAt(270, lerp(640, 560 - fy * 1.9, z), s, 0, lerp(8, 0, z), 0);
+    const hp = P(lt2, 1.25, .25);
+    if (hp > 0) { fhl.style.opacity = hp; fhl.style.left = '10px'; fhl.style.top = sp(495) + 'px'; fhl.style.width = '218px'; fhl.style.height = (sp(685) - sp(495)) + 'px'; }
+  } else if (t >= 19.0 && t < 21.8) {
+    const lt2 = t - 19.0;
+    screen('exams', 'exam_q', lt2 > 1.0 ? 1 : 0);
+    const pin = eo5(P(lt2, 0, .3));
+    phoneAt(270, 560, lerp(1.0, 1.2, pin), lerp(10, 0, pin), lerp(-14, -4, pin) + lt2 * 2, 0);
+    const tp = P(lt2, .7, .35);
+    if (tp > 0 && tp < 1) { tap.style.left = '120px'; tap.style.top = sp(170) + 'px'; tap.style.opacity = 1 - tp; tap.style.transform = `scale(${.5 + tp * 1.2})`; }
+  } else if (t >= 21.8 && t < 23.8) {
+    const lt2 = t - 21.8;
+    const fp = eio(P(lt2, .55, .4));
+    const ry = fp * 180;
+    screen(ry < 90 ? 'home' : 'home_ru');
+    phoneAt(270, 640, 1.3, 0, ry < 90 ? ry : ry - 180, 0);
+  } else phoneAt(0, 0, 1, 0, 0, 0, 0);
+
+  // fade on very end
+  $('stage').style.filter = t > 32.6 ? `brightness(${1 - (t - 32.6) / .4})` : '';
+};
+window.ready = Promise.all([document.fonts.load('800 20px U'), document.fonts.load('500 10px M'),
+  ...['home', 'progress', 'q_before', 'q_picked', 'q_wrong', 'exams', 'exam_q', 'home_ru'].map((n) => new Promise((r) => { const i = new Image(); i.onload = r; i.src = SRC(n); }))]);
+</script>
+</body></html>
