@@ -1,7 +1,8 @@
 """Сборка ролика «Готов к ЕНТ? 5 вопросов».
 
 python3 build.py 0 ru --voice voice/ep1_ru.mp3   # озвучка одним файлом (ElevenLabs/vidIQ, паузы 2.5 с между фразами)
-python3 build.py 0 kk --edge kk-KZ-DauletNeural  # бесплатная озвучка Microsoft Edge, по фразе (нужен pip install edge-tts и интернет)
+python3 build.py 0 kk --eleven                    # ElevenLabs по фразам (ключ в ELEVENLABS_API_KEY), самый живой голос
+python3 build.py 0 kk --edge kk-KZ-DauletNeural  # голос Microsoft Edge по фразам, без ключа и лимитов (pip install edge-tts)
 python3 build.py 0 ru --script                   # только напечатать текст для озвучки
 Результат: out/ep01_ru.mp4 и out/ep01_ru.txt (подпись к посту)
 """
@@ -16,6 +17,7 @@ HERE = Path(__file__).resolve().parent
 SR = S.SR
 TDUR, LDUR = 3.0, 1.25
 TEMPO = 1.1  # ускорение голоса без смены тембра
+TEMPO_END = 1.3  # финал (ответ на 1-й вопрос и призыв) быстрее
 SUBJ = {'ru': 0, 'kk': 1}
 
 
@@ -83,17 +85,37 @@ def tighten(x, maxgap=.22):
     return out
 
 
-def edge_segments(texts, voice, tmp):
-    out = []
-    for i, t in enumerate(texts):
-        f = tmp / f'seg{i}.mp3'
-        subprocess.run(['edge-tts', '--voice', voice, '--rate', '+8%', '--text', t, '--write-media', str(f)], check=True)
+ELEVEN_VOICE = os.environ.get('ELEVEN_VOICE', 'TX3LPaxmHKxFdv7VOQHJ')  # Liam, как в пилоте
+
+
+def eleven_segments(texts, tmp, lang):
+    """ElevenLabs API напрямую, по одной фразе: синхрон точный. Нужен ключ ELEVENLABS_API_KEY.
+    Готовые фразы кэшируются в voice_cache/, повторяющиеся (интро, уровни, призыв) не тратят символы."""
+    import urllib.request, hashlib
+    key = os.environ['ELEVENLABS_API_KEY']; cache = HERE / 'voice_cache'; cache.mkdir(exist_ok=True); out = []
+    for t in texts:
+        f = cache / (hashlib.sha1(f'{ELEVEN_VOICE}|{lang}|{t}'.encode()).hexdigest()[:16] + '.mp3')
+        if not f.exists():
+            body = json.dumps({'text': t, 'model_id': os.environ.get('ELEVEN_MODEL_' + lang.upper(), {'ru': 'eleven_multilingual_v2', 'kk': 'eleven_v3'}[lang]),
+                               'voice_settings': {'stability': .45, 'similarity_boost': .8, 'style': .35}}).encode()
+            req = urllib.request.Request(f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVEN_VOICE}', body,
+                                         {'xi-api-key': key, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg'})
+            f.write_bytes(urllib.request.urlopen(req, timeout=120).read())
         out.append(decode(f))
     return out
 
 
-def speed(x):
-    raw = subprocess.run(['ffmpeg', '-v', 'error', '-f', 'f64le', '-ar', str(SR), '-ac', '1', '-i', '-', '-af', f'atempo={TEMPO}', '-f', 'f64le', '-'],
+def edge_segments(texts, voice, tmp):
+    out = []
+    for i, t in enumerate(texts):
+        f = tmp / f'seg{i}.mp3'
+        subprocess.run(['edge-tts', '--voice', voice, '--text', t, '--write-media', str(f)], check=True)
+        out.append(decode(f))
+    return out
+
+
+def speed(x, tempo=TEMPO):
+    raw = subprocess.run(['ffmpeg', '-v', 'error', '-f', 'f64le', '-ar', str(SR), '-ac', '1', '-i', '-', '-af', f'atempo={tempo}', '-f', 'f64le', '-'],
                          input=x.astype(np.float64).tobytes(), capture_output=True, check=True).stdout
     return np.frombuffer(raw, np.float64)
 
@@ -120,11 +142,15 @@ def main():
             segs = [x[c[i]:c[i + 1]] for i in range(len(c) - 1)]
         else:
             segs = align(x, texts)
+    elif '--eleven' in sys.argv:
+        segs = eleven_segments(texts, tmp, lang)
     else:
         segs = edge_segments(texts, sys.argv[sys.argv.index('--edge') + 1], tmp)
+    for o in [a for i, a in enumerate(sys.argv) if i and sys.argv[i - 1] == '--seg']:  # --seg 11=cta.mp3 заменить одну фразу
+        k, f = o.split('=', 1); segs[int(k)] = decode(f)
     if len(segs) != len(texts):
         sys.exit(f'в озвучке {len(segs)} фраз, а нужно {len(texts)}: проверь паузы')
-    segs = [speed(tighten(trim(s))) for s in segs]
+    segs = [speed(tighten(trim(s), .22 if i < 10 else .12), TEMPO if i < 10 else TEMPO_END) for i, s in enumerate(segs)]
     if '--check' in sys.argv:
         for i, (t, s) in enumerate(zip(texts, segs)): print(i, f'{len(s)/SR:5.2f}s', t[:70])
         return
@@ -133,20 +159,22 @@ def main():
     # ---- таймлайн ----
     V = []  # (время, индекс сегмента)
     tl = {'tdur': TDUR, 'ldur': LDUR, 'q': [], 'lad': []}
-    V.append((.15, 0)); t0 = .15 + D[0] + .15
-    tl['q'].append({'show': 0, 't0': t0, 'reveal': None}); end = t0 + TDUR + .35
+    V.append((.1, 0)); tl['intro'] = .1 + D[0] + .3          # титр «ответишь на 5 вопросов, значит готов»
+    show = tl['intro']; V.append((show + .1, 1)); t0 = show + .1 + D[1] + .15
+    tl['q'].append({'show': show, 't0': t0, 'reveal': None}); end = t0 + TDUR + .35
     for k in range(1, 5):
+        qs, an = 2 * k, 2 * k + 1
         lt = end + .1; tl['lad'].append({'t': lt, 'lv': k})
-        vs = lt + .15; V.append((vs, 2 * k - 1)); show = lt + LDUR - .15
-        t0 = max(vs + D[2 * k - 1], show + .6) + .15; rv = t0 + TDUR
+        vs = lt + .15; V.append((vs, qs)); show = lt + LDUR - .15
+        t0 = max(vs + D[qs], show + .6) + .15; rv = t0 + TDUR
         tl['q'].append({'show': show, 't0': t0, 'reveal': rv})
-        V.append((rv + .15, 2 * k)); end = rv + .15 + D[2 * k] + .3
+        V.append((rv + .15, an)); end = rv + .15 + D[an] + .3
         if k == 1:
-            a = texts[2]; tl['heart'] = rv + .15 + D[2] * (len(a) - len(a.split('. ')[-1] if '!' not in a else a.split('! ')[-1])) / len(a)
-    fs = end + .1; V.append((fs + .25, 9))
-    tl['final'] = {'show': fs, 't0': None, 'reveal': fs + .25 + D[9] * .55}
-    tl['cta'] = fs + .25 + D[9] + .35; V.append((tl['cta'] + .15, 10))
-    total = tl['cta'] + .15 + D[10] + 1.0
+            a = texts[an]; tl['heart'] = rv + .15 + D[an] * (len(a) - len(a.split('! ')[-1] if '!' in a else a.split('. ')[-1])) / len(a)
+    fs = end + .05; V.append((fs + .15, 10))
+    tl['final'] = {'show': fs, 't0': None, 'reveal': fs + .15 + D[10] * .45}
+    tl['cta'] = fs + .15 + D[10] + .1; V.append((tl['cta'] + .05, 11))
+    total = tl['cta'] + .05 + D[11] + .8
 
     # ---- звук ----
     tr = S.Track(total)
@@ -178,8 +206,8 @@ def main():
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-framerate', '30', '-i', str(tmp / 'frames/f%04d.jpg'), '-i', str(tmp / 'audio.wav'),
                     '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-shortest',
                     '-movflags', '+faststart', str(out / f'{name}.mp4')], check=True)
-    cap = {'ru': 'Готов к ЕНТ? 5 вопросов от лёгкого до невозможного. Пиши в комменты, сколько набрал 👇\nБольше вопросов бесплатно: @enttrainer_bot в Telegram (ссылка в профиле)\n#ент #ент2027 #подготовкакент #тест #казахстан',
-           'kk': 'ҰБТ-ға дайынсың ба? Оңайдан мүмкін еместке дейін 5 сұрақ. Нәтижеңді комментарийге жаз 👇\nТағы сұрақтар тегін: Telegram-да @enttrainer_bot (сілтеме профильде)\n#ұбт #ұбт2027 #ұбтдайындық #тест #қазақстан'}[lang]
+    cap = {'ru': 'Готов к ЕНТ? 5 вопросов от лёгкого до невозможного. Пиши в комменты, сколько набрал 👇\nДальше тренируйся в Telegram: @enttrainer_bot (ссылка в профиле), платить ничего не надо\n#ент #ент2027 #подготовкакент #тест #казахстан',
+           'kk': 'ҰБТ-ға дайынсың ба? Оңайдан мүмкін еместке дейін 5 сұрақ. Нәтижеңді комментарийге жаз 👇\nАры қарай Telegram-да жаттық: @enttrainer_bot (сілтеме профильде), ештеңе төлеудің қажеті жоқ\n#ұбт #ұбт2027 #ұбтдайындық #тест #қазақстан'}[lang]
     (out / f'{name}.txt').write_text(cap + '\n\nОтветы/жауаптар: ' + ', '.join(q[lang]['options'][q['correct']] for q in ep) + '\n', encoding='utf-8')
     shutil.rmtree(tmp / 'frames')
     print(out / f'{name}.mp4', f'{total:.1f} c')

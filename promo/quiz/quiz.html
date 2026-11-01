@@ -49,6 +49,10 @@ html,body{background:#000;overflow:hidden}
 #cta .tg{margin-top:34px;display:flex;align-items:center;gap:14px;background:#2AABEE;border-radius:20px;padding:18px 28px;font-weight:800;font-size:30px;box-shadow:0 14px 40px rgba(42,171,238,.45)}
 #cta .tg svg{width:38px;height:38px}
 #cta .sm{margin-top:20px;font-weight:700;font-size:20px;color:var(--L);text-transform:uppercase;letter-spacing:.05em}
+#intro{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 24px;gap:14px;background:radial-gradient(ellipse at 50% 45%,#3a14a8,#160640)}
+#intro .a{font-weight:900;font-size:44px;line-height:1.05;text-transform:uppercase}
+#intro .n{font-weight:900;font-size:150px;line-height:1;color:var(--L);text-shadow:0 0 40px rgba(200,255,46,.45)}
+#intro .b{display:inline-block;font-weight:900;font-size:50px;text-transform:uppercase;background:var(--L);color:#14082f;padding:6px 18px 8px;border-radius:14px;box-shadow:0 0 34px rgba(200,255,46,.45)}
 #wm{position:absolute;left:0;right:0;top:880px;text-align:center;font-family:M,monospace;font-weight:700;font-size:16px;color:rgba(255,255,255,.55);letter-spacing:.04em}
 </style></head><body>
 <div id="stage">
@@ -63,6 +67,7 @@ html,body{background:#000;overflow:hidden}
  <div id="heart"><div class="h">♥</div><div class="ht" id="htx"></div></div>
  <div id="lad"></div>
  <div id="cta"></div>
+ <div id="intro"></div>
  <div id="wm">@enttrainer_bot</div>
 </div>
 <script>
@@ -73,9 +78,11 @@ const back=x=>{x=cl(x);const c=1.70158;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow
 const LVC=['#2BD96B','#FFD23F','#FF7A2F','#3FD6FF','#FF4FD8'];
 const TXT={
  ru:{lv:['Лёгкий','Средний','Сложный','Эксперт','Невозможно'],end:'Ответ в конце',tap:'Ответил? Тапни 2 раза',
-     cta1:'Сколько из 5?',cta2:'Пиши в комменты.<br>2000 таких вопросов бесплатно',cta3:'ссылка в профиле',q1:'Вопрос 1',keys:'ABCD'},
+     in1:'Ответишь на',in2:'вопросов',in3:'значит',in4:'готов к ЕНТ',
+     cta1:'Сколько из 5?',cta2:'Пиши в комменты.<br>Ещё 2000 вопросов в боте,<br>платить не нужно',cta3:'ссылка в профиле',q1:'Вопрос 1',keys:'ABCD'},
  kk:{lv:['Оңай','Орташа','Қиын','Сарапшы','Мүмкін емес'],end:'Жауабы соңында',tap:'Таптың ба? 2 рет бас',
-     cta1:'5-тен қанша?',cta2:'Комментарийге жаз.<br>2000 сұрақ тегін',cta3:'сілтеме профильде',q1:'1-сұрақ',keys:'ABCD'}};
+     in1:'',in2:'сұраққа жауап берсең',in3:'',in4:'ҰБТ-ға дайынсың',
+     cta1:'5-тен қанша?',cta2:'Комментарийге жаз.<br>Ботта тағы 2000 сұрақ,<br>төлеудің қажеті жоқ',cta3:'сілтеме профильде',q1:'1-сұрақ',keys:'ABCD'}};
 let EP,TL,T;
 window.setup=(ep,tl,lang)=>{
  EP=ep;TL=tl;T=TXT[lang];
@@ -83,6 +90,7 @@ window.setup=(ep,tl,lang)=>{
  $('strip').innerHTML=[1,2,3,4,5].map(i=>`<div>${i}</div>`).join('');
  $('lad').innerHTML=T.lv.map((n,i)=>`<div class="lr"><div class="n" style="background:${LVC[i]}">${i+1}</div><div style="color:${LVC[i]}">${n}</div><div class="s"></div></div>`).join('');
  $('htx').textContent=T.tap;
+ $('intro').innerHTML=(T.in1?`<div class="a">${T.in1}</div>`:'')+`<div class="n">5</div><div class="a">${T.in2}</div>`+(T.in3?`<div class="a" style="font-size:30px;opacity:.8">${T.in3}</div>`:'')+`<div class="b">${T.in4}</div>`;
  $('cta').innerHTML=`<div class="big">${T.cta1}</div><div class="mid">${T.cta2}</div>
   <div class="tg"><svg viewBox="0 0 24 24"><path fill="#fff" d="M9.04 15.6l-.37 5.2c.53 0 .76-.23 1.04-.5l2.5-2.4 5.18 3.8c.95.52 1.62.25 1.88-.88l3.4-15.98c.3-1.4-.5-1.95-1.43-1.6L1.4 9.1c-1.36.53-1.34 1.3-.23 1.64l5.1 1.6L18.1 4.9c.56-.37 1.07-.17.65.2"/></svg>@enttrainer_bot</div>
   <div class="sm">${T.cta3}</div>`;
@@ -164,6 +172,10 @@ window.render=t=>{
  $('cta').querySelector('.big').style.transform=`scale(${c>=0?back(c/.35):0})`;
  $('cta').querySelector('.tg').style.transform=`scale(${c>=0?back((c-.5)/.35):0})`;
  $('cta').querySelector('.mid').style.opacity=cl((c-.3)/.2);$('cta').querySelector('.sm').style.opacity=cl((c-.9)/.2);
+ // intro
+ const it=$('intro'),ie=TL.intro;
+ it.style.opacity=t<ie?1:cl(1-(t-ie)/.2);
+ [...it.children].forEach((c,i)=>{const d=t-.05-i*.18;c.style.transform=`scale(${back(d/.3)})`;c.style.opacity=cl(d/.12)});
  $('pat').style.transform=`rotate(-12deg) translateY(${-(t*12)%120}px)`;
 };
 window.ready=document.fonts.ready;

@@ -1,4 +1,6 @@
 build/
 out/
 voice/
+voice_cache/
+node_modules/
 __pycache__/

@@ -1,9 +1,9 @@
 """Собирает выпуски «Готов к ЕНТ? 5 вопросов» из банка вопросов приложения.
 
-python3 pick.py                 # выпуски из списка CURATED (руками отобранные)
-python3 pick.py --auto 10       # +10 выпусков автоматически: по одному вопросу из 5 групп,
-                                # только difficulty 1, короткие, без повторов (учёт в used.json)
-Результат: episodes.json
+python3 pick.py                 # первый запуск: выпуски из списка CURATED (руками отобранные)
+python3 pick.py --auto 10       # дописать +10 выпусков: по одному вопросу из 5 групп (история, математика,
+                                # биология, химия, физика), только лёгкие и короткие, без формул и без повторов (used.json)
+Результат: episodes.json (выпуск N = строка N-1, уже готовые не меняются)
 """
 import json, random, re, sys
 from pathlib import Path
@@ -36,8 +36,8 @@ def load():
     return qs
 
 
-def short_easy(q):
-    if q.get('difficulty') != 1 or q['type'] != 'single' or not q.get('kk') or len(q['answer']) != 1:
+def short_easy(q, maxd=1):
+    if q.get('difficulty', 9) > maxd or q['type'] != 'single' or not q.get('kk') or len(q['answer']) != 1:
         return False
     r, k = q['ru'], q['kk']
     if len(r['text']) > 95 or len(k['text']) > 110:
@@ -45,6 +45,12 @@ def short_easy(q):
     if max(len(o) for o in r['options'] + k['options']) > 32:
         return False
     return not re.search(r'[$\\_{}<]', r['text'] + k['text'] + ''.join(r['options'] + k['options']))
+
+
+def has_formula(q):
+    """формулы (H₂SO₄, log₂, 3·10⁸, √) голос читает плохо: в автоподбор не берём, только руками через say.json"""
+    t = ' '.join([q['ru']['text'], q['kk']['text']] + q['ru']['options'] + q['kk']['options'])
+    return bool(re.search(r'[₀-₉⁰-⁹²³¹·√]|\d[a-zA-Z]\b|\b[A-Z][a-z]?[A-Z0-9]|\b(sin|cos|log)\b', t))
 
 
 def item(q, rng):
@@ -62,18 +68,24 @@ def main():
     rng = random.Random(2027)
     used_f = HERE / 'used.json'
     used = set(json.load(open(used_f))) if used_f.exists() else set()
-    eps = []
-    for ids in CURATED:
-        eps.append([item(qs[i], rng) for i in ids]); used.update(ids)
+    ep_f = HERE / 'episodes.json'
+    eps = json.load(open(ep_f, encoding='utf-8')) if ep_f.exists() else []
+    if not eps:  # первый запуск: выпуски, отобранные руками
+        for ids in CURATED:
+            eps.append([item(qs[i], rng) for i in ids]); used.update(ids)
+    rng = random.Random(len(eps) * 7919 + len(used))
     if '--auto' in sys.argv:
         n = int(sys.argv[sys.argv.index('--auto') + 1])
         # не берём почти одинаковые шаблонные вопросы: одна тема = один вопрос на выпуск, и тема не чаще раза в 3 выпуска
-        pools = [[q for q in qs.values() if q['subject'] in g and short_easy(q)] for g in GROUPS]
+        # сначала только лёгкие (difficulty 1); когда они кончатся, добавятся короткие средние (2)
+        pools = [[q for q in qs.values() if q['subject'] in g and short_easy(q, 1) and not has_formula(q)] for g in GROUPS]
+        pools2 = [[q for q in qs.values() if q['subject'] in g and short_easy(q, 2) and not has_formula(q)] for g in GROUPS]
         recent = []
         for _ in range(n):
             ep = []
-            for pool in pools:
-                cand = [q for q in pool if q['id'] not in used and (q['subject'], q['topic']) not in recent[-15:]]
+            for pool, pool2 in zip(pools, pools2):
+                ok = lambda q: q['id'] not in used and (q['subject'], q['topic']) not in recent[-15:]
+                cand = [q for q in pool if ok(q)] or [q for q in pool2 if ok(q)]
                 if not cand:
                     print('банк простых вопросов закончился'); break
                 q = rng.choice(cand); used.add(q['id']); recent.append((q['subject'], q['topic'])); ep.append(item(q, rng))
