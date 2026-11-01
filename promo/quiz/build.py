@@ -109,7 +109,9 @@ def edge_segments(texts, voice, tmp):
     out = []
     for i, t in enumerate(texts):
         f = tmp / f'seg{i}.mp3'
-        subprocess.run(['edge-tts', '--voice', voice, '--text', t, '--write-media', str(f)], check=True)
+        for attempt in range(4):  # сервис Microsoft иногда обрывается (NoAudioReceived): повторяем
+            if subprocess.run(['edge-tts', '--voice', voice, '--text', t, '--write-media', str(f)]).returncode == 0 and f.stat().st_size: break
+        else: sys.exit('edge-tts не ответил 4 раза подряд, запусти ещё раз')
         out.append(decode(f))
     return out
 
@@ -142,6 +144,8 @@ def main():
             segs = [x[c[i]:c[i + 1]] for i in range(len(c) - 1)]
         else:
             segs = align(x, texts)
+    elif '--segdir' in sys.argv:  # готовые фразы seg0.mp3..seg11.mp3 (например, озвучены на другом компьютере)
+        d = Path(sys.argv[sys.argv.index('--segdir') + 1]); segs = [decode(d / f'seg{i}.mp3') for i in range(len(texts))]
     elif '--eleven' in sys.argv:
         segs = eleven_segments(texts, tmp, lang)
     else:
