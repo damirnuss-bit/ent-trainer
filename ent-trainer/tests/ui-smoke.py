@@ -36,14 +36,22 @@ def run():
         def visible_text(): return page.inner_text('#app')
 
         page.goto(f'http://127.0.0.1:{PORT}/index.html')
-        page.wait_for_selector('[data-act=setLang]')
-        shot('01-lang')
-
-        # --- онбординг: язык, связка, первый вопрос
-        page.click('[data-act=setLang][data-v=ru]')
+        # --- первый запуск: сразу главная с выбором профиля, без автотеста
         page.wait_for_selector('[data-act=setTrack]')
-        shot('02-track')
+        shot('01-welcome')
+        if page.locator('.qtext').count(): fail('при первом запуске открылся тест')
+        if page.locator('#tabs').is_visible(): fail('нижние вкладки видны до выбора профиля')
+        page.click('[data-act=setLang][data-v=kk]'); page.wait_for_timeout(150)
+        if 'Бейініңді таңда' not in visible_text(): fail('переключение на казахский на главной не сработало')
+        page.click('[data-act=setLang][data-v=ru]'); page.wait_for_timeout(150)
         page.click('[data-act=setTrack][data-v=mathphys]')
+        page.wait_for_selector('[data-act=startMini]')
+        shot('02-home-after-track')
+        if page.locator('.qtext').count(): fail('после выбора профиля сам открылся тест')
+        # --- практика по теме, 10 вопросов
+        page.click('[data-tab=practice]'); page.wait_for_selector('[data-act=goTopics]')
+        page.click('[data-act=goTopics]'); page.wait_for_selector('[data-act=startTopic]')
+        page.locator('[data-act=startTopic]').first.click()
         page.wait_for_selector('.qtext')
         shot('03-first-question')
         if 'Теңдеу' in visible_text(): fail('первый вопрос на казахском при выбранном русском')

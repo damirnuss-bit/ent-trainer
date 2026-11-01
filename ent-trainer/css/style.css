@@ -298,3 +298,12 @@ body.nb-back #app { padding-top: 56px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
 body.nb-back .qtop { padding-left: 48px; }
+
+/* первый запуск */
+.topbar .lang-sw{margin:0;gap:6px}
+.topbar .lang-sw .chip{padding:6px 10px;font-size:13px}
+.welcome{background:var(--card);border-radius:16px;padding:16px 16px 6px;margin:12px 0 4px}
+.welcome h2{font-size:18px;margin:0 0 8px}
+.welcome ul{margin:0;padding:0;list-style:none}
+.welcome li{position:relative;padding:0 0 10px 22px;font-size:14px;line-height:1.35;color:var(--text)}
+.welcome li::before{content:'';position:absolute;left:4px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--accent)}

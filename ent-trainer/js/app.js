@@ -117,7 +117,7 @@ function render() {
 }
 
 function renderTabs() {
-  const on = TABS.includes(cur.name);
+  const on = TABS.includes(cur.name) && !!store.settings.track;
   tabsEl.hidden = !on;
   document.body.classList.toggle('has-tabs', on);
   if (!on) return;
@@ -147,6 +147,7 @@ const SCREENS = {
   },
 
   home() {
+    if (!store.settings.track) return welcomeScreen();
     const f = store.forecast();
     const goal = CONFIG.dailyGoal;
     const ex = nextExam();
@@ -687,19 +688,34 @@ function confetti() {
   })();
 }
 
+// ---------------------------------------------------------------- первый запуск
+function welcomeScreen() {
+  ui.back = null;
+  const ex = nextExam();
+  return `
+    <div class="topbar"><h1>${S().app}</h1>
+      <div class="chips lang-sw"><button class="chip ${lang === 'kk' ? 'on' : ''}" data-act="setLang" data-v="kk">Қаз</button><button class="chip ${lang === 'ru' ? 'on' : ''}" data-act="setLang" data-v="ru">Рус</button></div></div>
+    ${ex ? `<div class="exam"><span>${S().examNext}</span><b>${S().daysN(ex.days)}</b><small>${ex.date.getDate()} ${S().months[ex.date.getMonth()]}</small></div>` : ''}
+    <div class="welcome">
+      <h2>${S().welcomeTitle}</h2>
+      <ul>${S().welcomePoints.map((x) => `<li>${x}</li>`).join('')}</ul>
+    </div>
+    <div class="sec">${S().pickTrack}</div>
+    ${Object.entries(TRACKS).map(([id, t]) => `<button class="btn big-choice" data-act="setTrack" data-v="${id}">${t[lang]}</button>`).join('')}
+    <p class="note">${S().nonprofit}</p>`;
+}
+
 // ---------------------------------------------------------------- события
 const ACT = {
   async setLang(d) {
     lang = d.v; store.setSettings({ lang });
-    if (!store.settings.track) { show('track', {}, { replace: true }); return; }
-    if (d.from === 'settings') { render(); return; }
-    goHome();
+    render();
   },
   async setTrack(d) {
     const first = !store.settings.onboarded;
     store.setSettings({ track: d.v, onboarded: true });
     track('track', { track: d.v, lang });
-    if (first) { toast(S().firstQ, 1600); await startPractice(pool.trackSubjects(d.v)[0], null, 10); return; }
+    if (first) { goHome(); toast(S().trackSaved, 1800); return; }
     if (d.from === 'settings') { render(); return; }
     goHome();
   },
@@ -781,9 +797,8 @@ async function boot() {
   const saved = store.loadSession();
   if (saved && saved.q && saved.q.length) ses = saved;
 
-  if (!store.settings.lang) cur = { name: 'lang', params: {} };
-  else if (!store.settings.track) cur = { name: 'track', params: {} };
-  else cur = { name: 'home', params: {} };
+  // первый запуск сразу на главную: язык берём из Telegram, профиль выбирается на главной
+  cur = { name: 'home', params: {} };
   render();
 
   // подгружаем остальное в фоне, не задерживая первый экран
