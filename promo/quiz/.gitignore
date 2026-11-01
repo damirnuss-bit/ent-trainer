@@ -1,0 +1,4 @@
+build/
+out/
+voice/
+__pycache__/

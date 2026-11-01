@@ -1,0 +1,170 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:U;src:url(fonts/Mont.ttf);font-weight:100 900}
+@font-face{font-family:M;src:url(fonts/Plex.ttf);font-weight:400 600}@font-face{font-family:M;src:url(fonts/PlexB.ttf);font-weight:700 800}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#000;overflow:hidden}
+:root{--L:#C8FF2E;--G:#2BD96B;--bg1:#3a14a8;--bg2:#160640}
+#stage{width:540px;height:960px;position:relative;overflow:hidden;color:#fff;font-family:U,M,sans-serif;
+  background:radial-gradient(ellipse 120% 80% at 50% 38%,var(--bg1) 0%,#25097a 45%,var(--bg2) 100%)}
+#pat{position:absolute;inset:-60px;opacity:.09;font-weight:900;font-size:64px;line-height:120px;color:#fff;white-space:nowrap;transform:rotate(-12deg)}
+.abs{position:absolute}
+/* ladder strip */
+#strip{position:absolute;left:26px;right:26px;top:96px;height:34px;display:flex;gap:8px}
+#strip div{flex:1;border-radius:10px;background:rgba(255,255,255,.14);font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;position:relative;color:rgba(255,255,255,.7)}
+#strip div.on{color:#120630}
+#strip div.done::after{content:'';position:absolute;left:8px;right:8px;top:50%;height:3px;background:#fff;border-radius:2px}
+#lvname{position:absolute;left:0;right:0;top:140px;text-align:center;font-weight:900;font-size:22px;letter-spacing:.06em;text-transform:uppercase}
+/* question */
+#card{position:absolute;left:22px;right:22px;top:190px;background:#fff;color:#14082f;border-radius:26px;padding:22px 22px 24px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+#subj{display:inline-block;font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase;background:#efeaff;color:#4a22c9;border-radius:8px;padding:5px 10px;margin-bottom:12px}
+#qt{font-weight:800;line-height:1.18}
+#opts{position:absolute;left:22px;right:22px}
+.op{position:relative;display:flex;align-items:center;gap:14px;background:#fff;color:#14082f;border-radius:999px;height:74px;padding:0 22px 0 10px;margin-bottom:14px;
+  font-weight:800;font-size:26px;box-shadow:0 8px 22px rgba(0,0,0,.25);transition:none}
+.op .k{flex:none;width:54px;height:54px;border-radius:50%;background:#4a22c9;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px}
+.op .t{white-space:nowrap;overflow:hidden}
+.op.ok{background:var(--G);color:#06210f}.op.ok .k{background:#fff;color:#0d7a34}
+.op.dim{opacity:.45}
+.op .chk{position:absolute;right:18px;font-size:30px;font-weight:900;opacity:0}
+/* timer */
+#tbar{position:absolute;left:22px;right:22px;height:18px;border-radius:9px;background:rgba(255,255,255,.18);overflow:hidden}
+#tfill{height:100%;border-radius:9px;transform-origin:0 50%}
+#tnum{position:absolute;left:0;right:0;text-align:center;font-weight:900;font-size:30px}
+#sticker{position:absolute;right:20px;font-weight:900;font-size:17px;background:var(--L);color:#14082f;padding:8px 13px;border-radius:12px;transform:rotate(4deg);box-shadow:0 8px 20px rgba(0,0,0,.3);text-transform:uppercase}
+/* ladder card */
+#lad{position:absolute;inset:0;background:#160640;display:flex;flex-direction:column;justify-content:center;padding:0 60px;gap:16px}
+.lr{display:flex;align-items:center;gap:18px;font-weight:900;font-size:34px;text-transform:uppercase;position:relative}
+.lr .n{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#14082f;font-size:28px}
+.lr .s{position:absolute;left:-10px;height:5px;top:50%;margin-top:-2px;background:#fff;border-radius:3px;transform-origin:0 50%}
+/* heart */
+#heart{position:absolute;left:50px;right:50px;top:300px;text-align:center;background:rgba(18,6,48,.9);border-radius:30px;padding:26px 10px 30px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#heart .h{font-size:150px;line-height:1;display:inline-block;color:#ff3b6b;text-shadow:0 10px 40px rgba(255,59,107,.5)}
+#heart .ht{font-weight:900;font-size:30px;text-transform:uppercase;margin-top:10px}
+/* cta */
+#cta{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 30px;background:radial-gradient(ellipse at 50% 45%,#3a14a8,#160640)}
+#cta .big{font-weight:900;font-size:58px;line-height:1.02;text-transform:uppercase}
+#cta .mid{font-weight:800;font-size:26px;margin-top:22px;line-height:1.25}
+#cta .tg{margin-top:34px;display:flex;align-items:center;gap:14px;background:#2AABEE;border-radius:20px;padding:18px 28px;font-weight:800;font-size:30px;box-shadow:0 14px 40px rgba(42,171,238,.45)}
+#cta .tg svg{width:38px;height:38px}
+#cta .sm{margin-top:20px;font-weight:700;font-size:20px;color:var(--L);text-transform:uppercase;letter-spacing:.05em}
+#wm{position:absolute;left:0;right:0;top:880px;text-align:center;font-family:M,monospace;font-weight:700;font-size:16px;color:rgba(255,255,255,.55);letter-spacing:.04em}
+</style></head><body>
+<div id="stage">
+ <div id="pat"></div>
+ <div id="q">
+  <div id="strip"></div><div id="lvname"></div>
+  <div id="card"><div id="subj"></div><div id="qt"></div></div>
+  <div id="sticker"></div>
+  <div id="opts"></div>
+  <div id="tbar"><div id="tfill"></div></div><div id="tnum"></div>
+ </div>
+ <div id="heart"><div class="h">♥</div><div class="ht" id="htx"></div></div>
+ <div id="lad"></div>
+ <div id="cta"></div>
+ <div id="wm">@enttrainer_bot</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const eo=x=>1-Math.pow(1-cl(x),3);
+const back=x=>{x=cl(x);const c=1.70158;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const LVC=['#2BD96B','#FFD23F','#FF7A2F','#3FD6FF','#FF4FD8'];
+const TXT={
+ ru:{lv:['Лёгкий','Средний','Сложный','Эксперт','Невозможно'],end:'Ответ в конце',tap:'Ответил? Тапни 2 раза',
+     cta1:'Сколько из 5?',cta2:'Пиши в комменты.<br>2000 таких вопросов бесплатно',cta3:'ссылка в профиле',q1:'Вопрос 1',keys:'ABCD'},
+ kk:{lv:['Оңай','Орташа','Қиын','Сарапшы','Мүмкін емес'],end:'Жауабы соңында',tap:'Таптың ба? 2 рет бас',
+     cta1:'5-тен қанша?',cta2:'Комментарийге жаз.<br>2000 сұрақ тегін',cta3:'сілтеме профильде',q1:'1-сұрақ',keys:'ABCD'}};
+let EP,TL,T;
+window.setup=(ep,tl,lang)=>{
+ EP=ep;TL=tl;T=TXT[lang];
+ $('pat').innerHTML=Array.from({length:14},()=>'? ! ? ! ? ! ? ! ? ! ? !').join('<br>');
+ $('strip').innerHTML=[1,2,3,4,5].map(i=>`<div>${i}</div>`).join('');
+ $('lad').innerHTML=T.lv.map((n,i)=>`<div class="lr"><div class="n" style="background:${LVC[i]}">${i+1}</div><div style="color:${LVC[i]}">${n}</div><div class="s"></div></div>`).join('');
+ $('htx').textContent=T.tap;
+ $('cta').innerHTML=`<div class="big">${T.cta1}</div><div class="mid">${T.cta2}</div>
+  <div class="tg"><svg viewBox="0 0 24 24"><path fill="#fff" d="M9.04 15.6l-.37 5.2c.53 0 .76-.23 1.04-.5l2.5-2.4 5.18 3.8c.95.52 1.62.25 1.88-.88l3.4-15.98c.3-1.4-.5-1.95-1.43-1.6L1.4 9.1c-1.36.53-1.34 1.3-.23 1.64l5.1 1.6L18.1 4.9c.56-.37 1.07-.17.65.2"/></svg>@enttrainer_bot</div>
+  <div class="sm">${T.cta3}</div>`;
+};
+let curQ=-1;
+function showQ(i){
+ if(curQ===i)return;curQ=i;const q=EP[i];
+ $('subj').textContent=q.subject;$('qt').textContent=q.text;
+ $('opts').innerHTML=q.options.map((o,j)=>`<div class="op"><div class="k">${T.keys[j]}</div><div class="t">${o}</div><div class="chk"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="#06210f" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>`).join('');
+ // fit question text
+ const qt=$('qt');let fs=38;qt.style.fontSize=fs+'px';
+ while(qt.offsetHeight>220&&fs>22){fs-=1;qt.style.fontSize=fs+'px'}
+ document.querySelectorAll('.op .t').forEach(t=>{let f=26;t.style.fontSize=f+'px';while(t.scrollWidth>t.clientWidth&&f>14){f--;t.style.fontSize=f+'px'}});
+ const top=190+$('card').offsetHeight+24;
+ $('opts').style.top=top+'px';
+ const ot=top+4*88+10;$('tbar').style.top=ot+'px';$('tnum').style.top=(ot+26)+'px';$('wm').style.top=(ot+78)+'px';
+ $('sticker').style.top=(190+$('card').offsetHeight-18)+'px';
+}
+window.render=t=>{
+ // find question block
+ let qi=-1;for(let i=0;i<TL.q.length;i++)if(t>=TL.q[i].show)qi=i;
+ const fin=t>=TL.final.show;
+ const idx=fin?0:Math.max(qi,0);
+ const B=fin?TL.final:TL.q[idx];
+ showQ(idx);
+ const lv=fin?0:idx;
+ // strip
+ document.querySelectorAll('#strip div').forEach((d,i)=>{
+  d.className=(i===lv?'on':'')+(i<lv&&!fin?' done':'');
+  d.style.background=i===lv?LVC[i]:i<lv&&!fin?'rgba(255,255,255,.28)':'rgba(255,255,255,.12)';
+ });
+ $('lvname').textContent=fin?T.q1:T.lv[lv];$('lvname').style.color=fin?'#fff':LVC[lv];
+ // entrance
+ const e=t-B.show;
+ $('card').style.transform=`translateY(${(1-eo(e/.35))*-30}px) scale(${.92+.08*back(e/.4)})`;
+ $('card').style.opacity=cl(e/.2);
+ const reveal=B.reveal!=null&&t>=B.reveal;
+ document.querySelectorAll('.op').forEach((o,j)=>{
+  const d=e-.12-j*.07;
+  o.style.transform=`translateX(${(1-eo(d/.35))*(j%2?60:-60)}px)`;o.style.opacity=cl(d/.2);
+  const ok=j===EP[idx].correct;
+  o.classList.toggle('ok',reveal&&ok);o.classList.toggle('dim',reveal&&!ok);
+  const r=t-(B.reveal||0);
+  if(reveal&&ok){o.style.transform=`scale(${1+.08*Math.sin(Math.PI*cl(r/.35))})`;o.querySelector('.chk').style.opacity=cl(r/.15)}
+  else o.querySelector('.chk').style.opacity=0;
+ });
+ // timer
+ const tp=B.t0!=null?cl((t-B.t0)/TL.tdur):0;
+ const tOn=B.t0!=null&&t>=B.t0-.3&&!reveal&&!(fin);
+ $('tbar').style.opacity=B.t0!=null&&!fin?1:0;
+ const hue=120*(1-tp);
+ $('tfill').style.background=`hsl(${hue},90%,52%)`;$('tfill').style.transform=`scaleX(${B.t0!=null&&t>=B.t0?1-tp:1})`;
+ $('tnum').textContent=tOn&&t>=B.t0?Math.ceil(TL.tdur*(1-tp)-1e-6)||'':'';
+ $('tnum').style.transform=`scale(${1+.25*Math.max(0,1-((t-B.t0)%1)/.2)})`;
+ // sticker on Q1 (first time only)
+ const st=$('sticker');st.textContent=T.end;
+ const sv=!fin&&idx===0&&t>=TL.q[0].t0+TL.tdur;
+ st.style.opacity=sv?1:0;st.style.transform=`rotate(4deg) scale(${sv?back((t-TL.q[0].t0-TL.tdur)/.3):0})`;
+ // heart
+ const h=TL.heart;const hv=t>=h&&t<h+2.2;
+ $('heart').style.opacity=hv?cl((t-h)/.15)*cl((h+2.2-t)/.2):0;
+ const hb=(t-h)%0.6;$('heart').querySelector('.h').style.transform=`scale(${hv?.8+.35*Math.max(0,1-hb/.25)*(t-h<1.3?1:0)+.2*back((t-h)/.3):0})`;
+ // ladder
+ let L=null;for(const l of TL.lad)if(t>=l.t&&t<l.t+TL.ldur)L=l;
+ const lad=$('lad');
+ if(L){const u=t-L.t;lad.style.opacity=cl(u/.12)*cl((TL.ldur-u)/.15);
+  document.querySelectorAll('.lr').forEach((r,i)=>{
+   const s=r.querySelector('.s');
+   const past=i<L.lv,cur=i===L.lv;
+   s.style.width=(r.children[1].offsetLeft+r.children[1].offsetWidth+20)+'px';
+   s.style.transform=`scaleX(${past?(i===L.lv-1?eo((u-.15)/.3):1):0})`;
+   r.style.opacity=past?.45:cur?1:.75;
+   r.style.transform=cur?`scale(${1+.12*back((u-.4)/.3)})`:'none';
+   r.style.transformOrigin='0 50%';
+  });
+ }else lad.style.opacity=0;
+ // cta
+ const c=t-TL.cta;$('cta').style.opacity=c>=0?cl(c/.2):0;
+ $('cta').querySelector('.big').style.transform=`scale(${c>=0?back(c/.35):0})`;
+ $('cta').querySelector('.tg').style.transform=`scale(${c>=0?back((c-.5)/.35):0})`;
+ $('cta').querySelector('.mid').style.opacity=cl((c-.3)/.2);$('cta').querySelector('.sm').style.opacity=cl((c-.9)/.2);
+ $('pat').style.transform=`rotate(-12deg) translateY(${-(t*12)%120}px)`;
+};
+window.ready=document.fonts.ready;
+</script></body></html>

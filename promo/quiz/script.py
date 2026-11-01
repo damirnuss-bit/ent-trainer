@@ -1,0 +1,37 @@
+"""Текст озвучки выпуска: 11 фраз (сегментов). Между ними в ролике идут таймеры и анимации.
+0 интро+Q1 | 1 Q2 | 2 ответ2+лайк | 3 Q3 | 4 ответ3 | 5 Q4 | 6 ответ4 | 7 Q5 | 8 ответ5 | 9 ответ на Q1 | 10 призыв
+"""
+import json
+from pathlib import Path
+HERE = Path(__file__).resolve().parent
+LV = {'ru': ['Первый уровень.', 'Второй уровень.', 'Третий уровень, сложный.', 'Четвёртый уровень, эксперт.', 'Последний уровень, невозможный.'],
+      'kk': ['Бірінші деңгей.', 'Екінші деңгей.', 'Үшінші деңгей, қиын.', 'Төртінші деңгей, сарапшы.', 'Соңғы деңгей, мүмкін емес.']}
+TXT = {'ru': dict(intro='Ответишь на все пять, значит к ЕНТ готов.', later='Ответ скажу в самом конце.',
+                  tap='Если ответил правильно, тапни два раза по экрану.', back='А теперь первый вопрос.',
+                  cta='Сколько набрал из пяти? Пиши в комменты. Две тысячи таких вопросов бесплатно в Телеграм боте ЕНТ тренажёр. Ссылка в профиле.'),
+       'kk': dict(intro='Бесеуіне де жауап берсең, ҰБТ-ға дайынсың.', later='Жауабын ең соңында айтамын.',
+                  tap='Дұрыс жауап берсең, экранды екі рет бас.', back='Ал енді бірінші сұрақ.',
+                  cta='Бестен қаншасына жауап бердің? Комментарийге жаз. Екі мың сұрақ тегін, Телеграмдағы ҰБТ тренажер ботында. Сілтеме профильде.')}
+
+def say(q, lang):
+    s = json.load(open(HERE / 'say.json', encoding='utf-8')).get(q['id'], {}).get(lang, {})
+    return s.get('q', q[lang]['text']), s.get('a', q[lang]['options'][q['correct']] + '.')
+
+def segments(ep, lang):
+    t = TXT[lang]; S = [say(q, lang) for q in ep]
+    seg = [f"{t['intro']} {LV[lang][0]} {S[0][0]} {t['later']}"]
+    for k in range(1, 5):
+        seg.append(f"{LV[lang][k]} {S[k][0]}")
+        seg.append(S[k][1] + (f" {t['tap']}" if k == 1 else ''))
+    seg.append(f"{t['back']} {S[0][1]}")
+    seg.append(t['cta'])
+    return seg
+
+def tts_text(ep, lang):  # один запрос в ElevenLabs/vidIQ: паузы 2.5 с режут сегменты
+    return ' <break time="2.5s" />\n'.join(segments(ep, lang))
+
+def needs_review(q, lang):
+    """Вопросы с цифрами/формулами TTS читает плохо: для них нужна запись в say.json."""
+    import re
+    s = json.load(open(HERE / 'say.json', encoding='utf-8')).get(q['id'], {}).get(lang)
+    return not s and bool(re.search(r'[0-9₀-₉⁰-⁹·√%°]|[A-Z][a-z]?[A-Z₀-₉]', q[lang]['text'] + q[lang]['options'][q['correct']]))
