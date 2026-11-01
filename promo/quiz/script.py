@@ -43,6 +43,10 @@ def for_voice(texts, lang):
     p = json.load(open(HERE / 'pron.json', encoding='utf-8')).get(lang, {})
     out = []
     for t in texts:
-        for k, v in p.items(): t = re.sub(r'(?<![\w-])' + re.escape(k) + r'(?![\w-])', v, t)
+        for k, v in p.items():
+            if k.endswith('*'):  # основа слова: заменяем внутри любых форм, сохраняя заглавную букву
+                t = re.sub(re.escape(k[:-1]), lambda m: v[0].upper() + v[1:] if m.group(0)[0].isupper() else v, t, flags=re.I)
+            else:
+                t = re.sub(r'(?<![\w-])' + re.escape(k) + r'(?![\w-])', v, t)
         out.append(t)
     return out
