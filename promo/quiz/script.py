@@ -35,3 +35,14 @@ def needs_review(q, lang):
     import re
     s = json.load(open(HERE / 'say.json', encoding='utf-8')).get(q['id'], {}).get(lang)
     return not s and bool(re.search(r'[₀-₉⁰-⁹²³¹·√]|\d[a-zA-Z]\b|\b[A-Z][a-z]?[A-Z0-9]', q[lang]['text'] + q[lang]['options'][q['correct']]))
+
+
+def for_voice(texts, lang):
+    """подстановки из pron.json, чтобы TTS правильно читал аббревиатуры (ЕНТ, ҰБТ) и трудные слова"""
+    import re
+    p = json.load(open(HERE / 'pron.json', encoding='utf-8')).get(lang, {})
+    out = []
+    for t in texts:
+        for k, v in p.items(): t = re.sub(r'(?<![\w-])' + re.escape(k) + r'(?![\w-])', v, t)
+        out.append(t)
+    return out

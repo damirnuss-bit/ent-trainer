@@ -11,7 +11,7 @@ import numpy as np
 from scipy.io import wavfile
 from pathlib import Path
 import sfx as S
-from script import segments, tts_text, needs_review
+from script import segments, tts_text, needs_review, for_voice
 
 HERE = Path(__file__).resolve().parent
 SR = S.SR
@@ -149,7 +149,7 @@ def main():
     elif '--eleven' in sys.argv:
         segs = eleven_segments(texts, tmp, lang)
     else:
-        segs = edge_segments(texts, sys.argv[sys.argv.index('--edge') + 1], tmp)
+        segs = edge_segments(for_voice(texts, lang), sys.argv[sys.argv.index('--edge') + 1], tmp)
     for o in [a for i, a in enumerate(sys.argv) if i and sys.argv[i - 1] == '--seg']:  # --seg 11=cta.mp3 заменить одну фразу
         k, f = o.split('=', 1); segs[int(k)] = decode(f)
     if len(segs) != len(texts):
