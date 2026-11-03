@@ -12,3 +12,11 @@ export function track(event, props = {}) {
     else fetch(CONFIG.trackUrl, { method: 'POST', body, mode: 'no-cors', keepalive: true });
   } catch (e) { /* статистика не должна ломать приложение */ }
 }
+
+// Отметка «открыл тренажёр» для статистики бота. Шлём подписанный Telegram initData, воркер проверяет подпись.
+export function pingSeen() {
+  if (!CONFIG.seenUrl || !tg.W || !tg.W.initData) return;
+  try {
+    fetch(CONFIG.seenUrl, { method: 'POST', body: tg.W.initData, headers: { 'content-type': 'text/plain' }, keepalive: true }).catch(() => {});
+  } catch (e) { /* не мешаем приложению */ }
+}

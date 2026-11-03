@@ -1,7 +1,7 @@
 // Service worker: приложение открывается и при слабой связи.
 // Свои файлы: сначала сеть (быстро обновляется после выкладки), если сети нет, берём из кеша.
 // Внешние (KaTeX, Telegram SDK): из кеша, обновляются в фоне.
-const VERSION = 'ent-v0.2.1';
+const VERSION = 'ent-v0.2.2';
 const SHELL = [
   './', './index.html', './css/style.css', './manifest.webmanifest',
   './js/app.js', './js/config.js', './js/subjects.js', './js/i18n.js', './js/render.js', './js/pool.js',

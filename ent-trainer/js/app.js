@@ -6,7 +6,7 @@ import { tg, inTelegram } from './tg.js';
 import { store } from './store.js';
 import * as pool from './pool.js';
 import { rt, typeset, loadKatex, escHtml as esc } from './render.js';
-import { track } from './track.js';
+import { track, pingSeen } from './track.js';
 
 const app = document.getElementById('app');
 const tabsEl = document.getElementById('tabs');
@@ -806,6 +806,7 @@ async function boot() {
   fetch('./data/ads.json').then((r) => r.json()).then((j) => { ads = j; if (cur.name === 'home') render(); }).catch(() => {});
   loadKatex();
   track('open', { lang });
+  pingSeen();
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 boot();

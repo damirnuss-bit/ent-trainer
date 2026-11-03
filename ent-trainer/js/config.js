@@ -21,6 +21,8 @@ export const CONFIG = {
 
   // Сбор статистики для продаж рекламы (адрес Google Apps Script, см. docs/apps-script.gs). Пусто = выключено
   trackUrl: '',
+  // Адрес воркера бота: при открытии приложения отмечаем, что человек заходил (для /stats в боте). Пусто = выключено
+  seenUrl: 'https://ent-bot.damirnuss.workers.dev/seen',
 
   // KaTeX с CDN. Если не загрузится, формулы покажутся простым текстом
   katexCss: 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css',
