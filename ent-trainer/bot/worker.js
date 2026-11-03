@@ -220,6 +220,13 @@ export default {
       }
     }
 
+    if (url.pathname === '/status') {
+      const i = await tg(env, 'getWebhookInfo', {});
+      const r = i.result || {};
+      return new Response(JSON.stringify({ ok: i.ok, url: r.url, pending: r.pending_update_count, last_error: r.last_error_message, last_error_at: r.last_error_date && new Date(r.last_error_date * 1000).toISOString(), ip: r.ip_address }, null, 2),
+        { headers: { 'content-type': 'application/json; charset=utf-8' } });
+    }
+
     if (url.pathname === '/setup') {
       const r = await setup(env, url.origin);
       const ok = Object.values(r).every((x) => x && x.ok);
