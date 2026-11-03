@@ -1,0 +1,40 @@
+name: Threads
+on:
+  schedule:
+    # время UTC; Алматы = UTC+5. Слоты 7:30/7:45, 13:00/13:15, 19:30/19:45
+    - cron: '30 2 * * *'
+    - cron: '45 2 * * *'
+    - cron: '0 8 * * *'
+    - cron: '15 8 * * *'
+    - cron: '30 14 * * *'
+    - cron: '45 14 * * *'
+    - cron: '0 4 * * 1'   # понедельник: продлить токен
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: threads
+  cancel-in-progress: false
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Продлить токен
+        if: github.event.schedule == '0 4 * * 1'
+        env:
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: python3 promo/threads/post.py --refresh
+      - name: Опубликовать
+        if: github.event.schedule != '0 4 * * 1'
+        env:
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+        run: python3 promo/threads/post.py
+      - name: Сохранить posted.json
+        if: always()
+        run: |
+          git config user.name "threads-bot"
+          git config user.email "threads-bot@users.noreply.github.com"
+          git add promo/threads/posted.json
+          git diff --cached --quiet || (git commit -m "threads: опубликовано" && git pull --rebase && git push)
