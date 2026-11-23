@@ -22,6 +22,8 @@ def run():
         # внешние сайты (Telegram SDK, CDN) в песочнице недоступны: отдаём пустой ответ, как офлайн
         ctx.route(re.compile(r'^https?://(?!127\.0\.0\.1).*'), lambda r: r.abort())
         ctx.add_init_script("window.__dialogs = 0")
+        # тест проверяет сам тренажёр, поэтому сразу с полным доступом (ограничения проверяются отдельно ниже)
+        ctx.add_init_script("""try { const k='ent_state_v1'; const s=JSON.parse(localStorage.getItem(k)||'{}'); if(!s.prem){ s.prem=Date.now()+864e5; localStorage.setItem(k, JSON.stringify(s)); } } catch(e) {}""")
         page = ctx.new_page()
         page.on('pageerror', lambda e: errors.append('pageerror: ' + str(e)))
         page.on('console', lambda m: errors.append('console.error: ' + m.text) if m.type == 'error' and 'Failed to load resource' not in m.text and 'ERR_FAILED' not in m.text else None)

@@ -1,7 +1,7 @@
 // Настройки проекта. Меняется только этот файл.
 export const CONFIG = {
   appName: 'ЕНТ Тренажёр',
-  version: '0.2.0-beta',
+  version: '0.4.0-beta',
 
   // Имя бота без @ (для кнопки «Поделиться»). Заполнить после создания в @BotFather
   botUsername: 'enttrainer_bot',
@@ -18,6 +18,20 @@ export const CONFIG = {
 
   // Цель на день (количество вопросов)
   dailyGoal: 20,
+
+  // Сервер бота (Cloudflare Worker): оплата Stars, проверка доступа, лига
+  apiUrl: 'https://ent-bot.damirnuss.workers.dev',
+  // Полный доступ за Telegram Stars. enabled: false выключает все ограничения
+  premium: { enabled: true, stars: 250, freeDaily: 30, freeVariants: 1 },
+  // Реклама для бесплатных пользователей (AdsGram, сеть для мини-приложений Telegram, выплаты в TON).
+  // Номера блоков берутся в кабинете partner.adsgram.ai. Пусто = реклама выключена.
+  // rewardBlockId: числовой, например '12345' (реклама за награду: +rewardQuestions вопросов, до rewardPerDay раз в день)
+  // interstitialBlockId: вида 'int-12345' (после теста, не чаще раза в interstitialGapSec секунд и раз в interstitialEvery тестов)
+  ads: { rewardBlockId: '', interstitialBlockId: '', rewardQuestions: 10, rewardPerDay: 3, interstitialEvery: 2, interstitialGapSec: 180 },
+
+  // Цели дня в опыте (XP), как в Duolingo. За верный ответ 10 XP
+  xpGoals: [50, 100, 200, 300],
+  xpGoalDefault: 100,
 
   // Сбор статистики для продаж рекламы (адрес Google Apps Script, см. docs/apps-script.gs). Пусто = выключено
   trackUrl: '',

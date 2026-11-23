@@ -33,6 +33,9 @@ function plainTex(s) {
 // Текст с формулами $...$ -> безопасный HTML
 export function rt(text) {
   if (text == null) return '';
+  // Многострочный текст: первая строка обычная, остальное (код, таблица) моноширинным блоком как есть
+  const nl = String(text).indexOf('\n');
+  if (nl >= 0) return rt(String(text).slice(0, nl)) + `<pre class="code">${esc(String(text).slice(nl + 1))}</pre>`;
   const parts = String(text).split(/(\$[^$]+\$)/g);
   return parts.map((p) => {
     if (p.length > 2 && p[0] === '$' && p[p.length - 1] === '$') {

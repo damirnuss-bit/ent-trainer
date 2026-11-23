@@ -16,6 +16,10 @@ const empty = () => ({
   streak: { n: 0, last: '' },
   best: {},         // лучший процент по режиму
   hist: {},         // ответов по дням: { '2026-10-31': 12 }, хранятся последние 14 дней
+  xp: { total: 0, days: {}, week: '', wk: 0 }, // опыт: всего, по дням (14 дней), за текущую неделю
+  adb: { d: '', n: 0 }, // сколько раз сегодня смотрел рекламу за награду
+  freeze: 0,        // заморозки серии (как в Duolingo): спасают серию за один пропущенный день
+  prem: 0,          // премиум до (мс), подтверждается сервером
 });
 
 let S = empty();
@@ -27,6 +31,9 @@ const today = () => {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 };
 const dayDiff = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+// неделя лиги: понедельник по местному времени
+const weekKey = () => { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return ymd(d); };
 
 function loadLocal() {
   try {
@@ -39,14 +46,16 @@ function saveLocal() {
   try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) { /* переполнение: игнор */ }
 }
 
+const TP_SUBJECTS = ['history', 'reading', 'mathlit', 'math', 'physics', 'chemistry', 'biology', 'geography', 'worldhist', 'informatics', 'law', 'english', 'kazlang', 'kazlit', 'ruslang', 'ruslit'];
 function cloudKeys() {
-  return ['set', 'att', 'rec', 'tp_history', 'tp_reading', 'tp_mathlit', 'tp_math', 'tp_physics', 'tp_chemistry', 'tp_biology'];
+  return ['set', 'att', 'rec', 'xp', ...TP_SUBJECTS.map((s) => 'tp_' + s)];
 }
 
 function cloudPayload(key) {
-  if (key === 'set') return JSON.stringify({ ts: S.ts, set: S.set, day: S.day, streak: S.streak, best: S.best, hist: S.hist });
+  if (key === 'set') return JSON.stringify({ ts: S.ts, set: S.set, day: S.day, streak: S.streak, best: S.best, hist: S.hist, prem: S.prem });
   if (key === 'att') return JSON.stringify(S.att.slice(-22));
   if (key === 'rec') return S.rec;
+  if (key === 'xp') return JSON.stringify({ xp: S.xp, freeze: S.freeze });
   if (key.startsWith('tp_')) return JSON.stringify(S.tp[key.slice(3)] || {});
   return '';
 }
@@ -75,9 +84,10 @@ export const store = {
       try {
         const cs = JSON.parse(vals.set);
         if ((cs.ts || 0) > (S.ts || 0)) {
-          S.ts = cs.ts; S.set = Object.assign(S.set, cs.set); S.day = cs.day || S.day; S.streak = cs.streak || S.streak; S.best = cs.best || {}; S.hist = cs.hist || S.hist || {};
+          S.ts = cs.ts; S.set = Object.assign(S.set, cs.set); S.day = cs.day || S.day; S.streak = cs.streak || S.streak; S.best = cs.best || {}; S.hist = cs.hist || S.hist || {}; S.prem = Math.max(S.prem || 0, cs.prem || 0);
           if (vals.att) S.att = JSON.parse(vals.att);
           if (vals.rec != null) S.rec = vals.rec;
+          if (vals.xp) { const x = JSON.parse(vals.xp); S.xp = x.xp || S.xp; S.freeze = x.freeze || 0; }
           for (const k of cloudKeys()) if (k.startsWith('tp_') && vals[k]) S.tp[k.slice(3)] = JSON.parse(vals[k]);
           saveLocal();
           return 'cloud';
@@ -100,7 +110,12 @@ export const store = {
     if (S.day.d !== td) {
       if (S.streak.last) {
         const diff = dayDiff(S.streak.last, td);
-        S.streak.n = diff === 1 ? S.streak.n + 1 : (diff === 0 ? S.streak.n : 1);
+        const missed = diff - 1;
+        if (diff === 1) S.streak.n += 1;
+        else if (diff > 1 && missed <= S.freeze) { S.freeze -= missed; S.streak.n += 1; S.streak.saved = missed; }
+        else if (diff !== 0) S.streak.n = 1;
+        // каждые 7 дней серии дают заморозку, максимум 2
+        if (diff >= 1 && S.streak.n % 7 === 0 && S.freeze < 2) S.freeze += 1;
       } else S.streak.n = 1;
       S.streak.last = td;
       S.day = { d: td, n: 0 };
@@ -160,8 +175,41 @@ export const store = {
   todayCount() { return S.day.d === today() ? S.day.n : 0; },
   streak() {
     const diff = S.streak.last ? dayDiff(S.streak.last, today()) : 99;
-    return diff <= 1 ? S.streak.n : 0;
+    return diff <= 1 || diff - 1 <= S.freeze ? S.streak.n : 0;
   },
+  streakToday() { return S.streak.last === today(); },
+  freezes() { return S.freeze; },
+  // сообщить один раз, что заморозка спасла серию
+  takeSavedNote() { const n = S.streak.saved || 0; if (n) { delete S.streak.saved; markDirty('set'); } return n; },
+
+  // ---- опыт (XP), как в Duolingo
+  addXp(n) {
+    const td = today(), wk = weekKey();
+    S.xp.total += n;
+    S.xp.days[td] = (S.xp.days[td] || 0) + n;
+    const dk = Object.keys(S.xp.days).sort();
+    while (dk.length > 14) delete S.xp.days[dk.shift()];
+    if (S.xp.week !== wk) { S.xp.week = wk; S.xp.wk = 0; }
+    S.xp.wk += n;
+    markDirty('xp');
+  },
+  xpToday() { return S.xp.days[today()] || 0; },
+  xpWeek() { return S.xp.week === weekKey() ? S.xp.wk : 0; },
+  xpTotal() { return S.xp.total; },
+  xpWeekDays() {
+    const out = [];
+    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); out.push(S.xp.days[ymd(d)] || 0); }
+    return out;
+  },
+
+  // ---- реклама за награду: +вопросы на сегодня
+  adRewardsToday() { return S.adb && S.adb.d === today() ? S.adb.n : 0; },
+  addAdReward() { const td = today(); if (!S.adb || S.adb.d !== td) S.adb = { d: td, n: 0 }; S.adb.n += 1; markDirty('set'); },
+
+  // ---- премиум: срок хранится локально, но выставляется только по ответу сервера
+  isPremium() { return (S.prem || 0) > Date.now(); },
+  premiumUntil() { return S.prem || 0; },
+  setPremium(until) { S.prem = until || 0; markDirty('set'); },
 
   // Прогноз баллов из 140 по последним ответам (нужно минимум 20)
   forecast() {

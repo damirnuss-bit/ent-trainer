@@ -1,6 +1,6 @@
 // Сборка набора вопросов: банк + генераторы. Без DOM, проверяется в Node.
 import { CONFIG } from './config.js';
-import { SUBJECTS, TRACKS, REQUIRED, PROFILE_MIX, TYPE_POINTS } from './subjects.js';
+import { SUBJECTS, TRACKS, REQUIRED, PROFILE_MIX, TYPE_POINTS, TOPICS } from './subjects.js';
 import { GENERATORS } from './gen/index.js';
 import { make } from './gen/engine.js';
 import { mkRng } from './gen/util.js';
@@ -55,16 +55,25 @@ export function available(subject, topic) {
   return b + g;
 }
 
-// Загрузка банков через fetch (в браузере)
-export async function loadBanks(fetchFn = fetch, base = './data/bank/') {
-  const files = { history: 'history', reading: 'reading', physics: 'physics', chemistry: 'chemistry', biology: 'biology', math: 'math', mathlit: 'mathlit' };
-  await Promise.all(Object.entries(files).map(async ([subj, f]) => {
-    try {
-      const res = await fetchFn(base + f + '.json');
-      if (!res.ok) return;
-      setBank(subj, await res.json());
-    } catch (e) { /* офлайн или файла нет: работают генераторы и закешированное */ }
+// Загрузка банков через fetch (в браузере). Грузим только нужные предметы: при 10 000 вопросов
+// весь банк весит около 2 МБ в сжатом виде, а одному ученику обычно нужны 5 предметов из 16.
+const loaded = new Map();
+export function ensureBanks(subjects, fetchFn = fetch, base = './data/bank/') {
+  return Promise.all(subjects.map((subj) => {
+    if (!loaded.has(subj)) {
+      loaded.set(subj, (async () => {
+        try {
+          const res = await fetchFn(base + subj + '.json');
+          if (res.ok) setBank(subj, await res.json());
+          else loaded.delete(subj);
+        } catch (e) { loaded.delete(subj); /* офлайн: работают генераторы и закешированное */ }
+      })());
+    }
+    return loaded.get(subj);
   }));
+}
+export function loadBanks(fetchFn = fetch, base = './data/bank/') {
+  return ensureBanks(Object.keys(TOPICS), fetchFn, base);
 }
 
 // Перемешать варианты в вопросе из банка (одинаково для обоих языков)
