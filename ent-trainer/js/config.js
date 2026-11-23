@@ -22,7 +22,7 @@ export const CONFIG = {
   // Сервер бота (Cloudflare Worker): оплата Stars, проверка доступа, лига
   apiUrl: 'https://ent-bot.damirnuss.workers.dev',
   // Полный доступ за Telegram Stars. enabled: false выключает все ограничения
-  premium: { enabled: true, stars: 250, freeDaily: 30, freeVariants: 1 },
+  premium: { enabled: false, stars: 250, freeDaily: 30, freeVariants: 1 },
   // Реклама для бесплатных пользователей (AdsGram, сеть для мини-приложений Telegram, выплаты в TON).
   // Номера блоков берутся в кабинете partner.adsgram.ai. Пусто = реклама выключена.
   // rewardBlockId: числовой, например '12345' (реклама за награду: +rewardQuestions вопросов, до rewardPerDay раз в день)
